@@ -1,0 +1,4619 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 16.2
+-- Dumped by pg_dump version 16.2
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: knotlenghvalue; Type: DOMAIN; Schema: public
+--
+
+CREATE DOMAIN public.knotlenghvalue AS real
+	CONSTRAINT knotlenghvalue_check CHECK (((VALUE >= (0.0)::double precision) AND (VALUE <= (100.0)::double precision)));
+
+
+
+--
+-- Name: knotperfootvalue; Type: DOMAIN; Schema: public
+--
+
+CREATE DOMAIN public.knotperfootvalue AS integer
+	CONSTRAINT knotperfootvalue_check CHECK (((VALUE >= 0) AND (VALUE <= 200)));
+
+
+
+--
+-- Name: materialtype; Type: TYPE; Schema: public
+--
+
+CREATE TYPE public.materialtype AS ENUM (
+    'pile',
+    'warp',
+    'kilim',
+    'weft'
+);
+
+
+--
+-- Name: populationrecord; Type: TYPE; Schema: public
+--
+
+CREATE TYPE public.populationrecord AS (
+        tablename text,
+        ntuples integer
+);
+
+
+--
+-- Name: rugstoptype; Type: TYPE; Schema: public
+--
+
+CREATE TYPE public.rugstoptype AS ENUM (
+    'leather',
+    'faux',
+    'bonded',
+    'plastic'
+);
+
+
+
+--
+-- Name: squarefeet; Type: DOMAIN; Schema: public
+--
+
+CREATE DOMAIN public.squarefeet AS integer
+	CONSTRAINT squarefeet_check CHECK ((VALUE > 0));
+
+
+
+--
+-- Name: urlvalue; Type: DOMAIN; Schema: public
+--
+
+CREATE DOMAIN public.urlvalue AS text
+	CONSTRAINT urlvalue_check CHECK ((VALUE ~~ '%.%'::text));
+
+
+
+--
+-- Name: yearvalue; Type: DOMAIN; Schema: public
+--
+
+CREATE DOMAIN public.yearvalue AS integer
+	CONSTRAINT yearvalue_check CHECK (((VALUE >= 1000) AND (VALUE <= 2100)));
+
+
+
+--
+-- Name: dbpop(); Type: FUNCTION; Schema: public
+--
+
+CREATE FUNCTION public.dbpop() RETURNS SETOF public.populationrecord
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+        rec RECORD;
+        qry TEXT;
+        res PopulationRecord;
+        num INTEGER;
+BEGIN
+        FOR rec IN SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename
+        LOOP
+                qry := 'select count(*) from ' || quote_ident(rec.tablename);
+                EXECUTE qry INTO num;
+                res.tablename := rec.tablename; res.ntuples := num;
+                RETURN NEXT res;
+        END LOOP;
+        RETURN;
+END;
+$$;
+
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: contains; Type: TABLE; Schema: public
+--
+
+CREATE TABLE public.contains (
+    rug integer NOT NULL,
+    material integer NOT NULL
+);
+
+
+
+--
+-- Name: crafted_by; Type: TABLE; Schema: public
+--
+
+CREATE TABLE public.crafted_by (
+    rug integer NOT NULL,
+    factory integer NOT NULL
+);
+
+
+
+--
+-- Name: factories; Type: TABLE; Schema: public
+--
+
+CREATE TABLE public.factories (
+    id integer NOT NULL,
+    name text NOT NULL,
+    founded public.yearvalue,
+    website public.urlvalue,
+    located_in integer NOT NULL
+);
+
+
+
+--
+-- Name: locations; Type: TABLE; Schema: public
+--
+
+CREATE TABLE public.locations (
+    id integer NOT NULL,
+    province text NOT NULL,
+    county text,
+    district text,
+    rural_district text,
+    city text,
+    village text
+);
+
+
+
+--
+-- Name: materials; Type: TABLE; Schema: public
+--
+
+CREATE TABLE public.materials (
+    id integer NOT NULL,
+    itype public.materialtype NOT NULL,
+    name text NOT NULL
+);
+
+
+
+--
+-- Name: rugs; Type: TABLE; Schema: public
+--
+
+CREATE TABLE public.rugs (
+    id integer NOT NULL,
+    name text NOT NULL,
+    year_crafted public.yearvalue,
+    style integer NOT NULL,
+    knot_leng public.knotlenghvalue NOT NULL,
+    knot_per_foot public.knotperfootvalue,
+    rug_stop public.rugstoptype,
+    size public.squarefeet,
+    notes text,
+    rating integer,
+    CONSTRAINT rugs_rating_check CHECK (((rating >= 0) AND (rating <= 10)))
+);
+
+
+
+--
+-- Name: styles; Type: TABLE; Schema: public
+--
+
+CREATE TABLE public.styles (
+    id integer NOT NULL,
+    name text NOT NULL,
+    min_knot_length public.knotlenghvalue NOT NULL,
+    max_knot_length public.knotlenghvalue NOT NULL,
+    CONSTRAINT minmax CHECK (((min_knot_length)::real <= (max_knot_length)::real))
+);
+
+
+
+--
+-- Data for Name: contains; Type: TABLE DATA; Schema: public
+--
+
+COPY public.contains (rug, material) FROM stdin;
+346	124
+346	125
+352	126
+355	127
+355	128
+356	129
+356	130
+358	131
+360	132
+360	133
+360	134
+360	135
+360	136
+360	137
+360	138
+360	139
+360	140
+360	141
+369	142
+377	143
+377	126
+377	144
+377	145
+377	146
+380	126
+380	147
+380	143
+383	126
+383	143
+386	148
+386	149
+389	150
+391	151
+391	152
+391	153
+396	125
+396	126
+396	154
+396	143
+400	126
+400	143
+401	155
+401	156
+401	131
+401	157
+401	158
+401	159
+403	160
+403	151
+403	125
+405	161
+405	162
+406	161
+413	147
+413	126
+413	124
+413	143
+413	163
+416	164
+416	165
+416	166
+416	159
+416	131
+417	167
+417	168
+418	169
+418	152
+419	170
+419	171
+419	172
+419	126
+419	125
+419	173
+419	174
+419	175
+420	176
+420	128
+420	131
+427	177
+427	143
+427	178
+427	126
+427	179
+427	128
+427	131
+431	147
+431	143
+431	124
+433	180
+433	181
+435	182
+437	161
+437	183
+438	184
+439	185
+442	186
+444	187
+444	144
+444	159
+449	126
+449	143
+449	188
+451	189
+451	190
+453	144
+453	191
+453	192
+453	143
+453	146
+453	126
+453	189
+455	167
+455	134
+457	151
+457	147
+457	160
+459	149
+459	193
+460	193
+460	148
+462	194
+462	195
+462	196
+463	128
+463	186
+464	149
+464	186
+466	184
+466	197
+466	198
+466	199
+467	200
+467	152
+467	124
+467	201
+468	202
+468	203
+468	204
+475	205
+476	145
+476	146
+477	206
+477	207
+477	126
+477	208
+480	131
+480	209
+480	149
+481	210
+483	211
+483	212
+490	179
+491	179
+493	213
+493	196
+493	194
+493	159
+494	126
+494	192
+495	147
+495	214
+496	149
+496	193
+497	149
+497	159
+498	149
+498	215
+499	149
+500	216
+500	217
+503	218
+505	146
+507	219
+507	220
+509	221
+509	222
+509	223
+509	186
+511	189
+511	224
+512	225
+514	186
+515	126
+515	143
+515	226
+521	227
+522	143
+522	144
+522	154
+522	177
+525	144
+525	152
+525	131
+530	146
+530	177
+530	127
+531	178
+531	179
+531	125
+532	198
+533	126
+533	147
+535	188
+535	151
+535	143
+535	153
+535	152
+535	228
+535	125
+535	229
+535	230
+537	231
+538	232
+538	128
+538	233
+538	149
+538	186
+538	215
+538	148
+539	234
+540	133
+540	235
+540	236
+540	222
+540	237
+540	238
+541	239
+542	147
+542	188
+542	154
+544	152
+544	124
+545	149
+545	164
+546	172
+546	126
+546	240
+546	174
+546	241
+546	175
+546	131
+547	205
+547	154
+547	178
+549	127
+549	143
+551	144
+553	191
+553	143
+553	160
+553	225
+553	173
+553	242
+553	243
+555	143
+555	214
+555	244
+555	173
+555	243
+555	245
+555	246
+555	128
+555	159
+555	131
+556	126
+556	147
+556	143
+556	212
+558	247
+567	248
+567	249
+567	250
+568	126
+568	251
+568	252
+570	143
+570	125
+570	214
+570	178
+572	215
+572	159
+574	253
+574	237
+576	151
+576	126
+576	144
+577	126
+577	146
+577	160
+577	254
+579	152
+579	254
+583	159
+586	255
+587	256
+588	193
+593	152
+593	126
+593	207
+594	147
+594	182
+594	152
+594	127
+596	126
+596	182
+597	171
+597	143
+597	126
+598	126
+598	147
+598	154
+598	127
+601	172
+602	172
+608	127
+608	144
+608	147
+609	257
+609	180
+610	124
+610	126
+611	124
+611	126
+611	178
+613	224
+616	131
+616	258
+621	124
+621	178
+621	126
+624	259
+624	193
+627	143
+627	147
+627	146
+628	167
+628	124
+628	147
+634	260
+634	186
+634	159
+636	262
+636	184
+637	127
+637	126
+637	263
+637	147
+637	143
+640	264
+640	265
+640	266
+641	267
+641	126
+646	124
+646	146
+646	127
+646	240
+646	174
+646	268
+646	269
+646	270
+648	143
+648	192
+648	271
+648	134
+648	243
+648	128
+648	272
+648	138
+648	273
+649	126
+649	127
+649	212
+649	214
+650	274
+652	147
+652	173
+652	275
+652	156
+652	276
+655	154
+655	143
+655	126
+655	160
+655	147
+658	126
+658	152
+658	277
+659	278
+660	279
+660	280
+660	281
+660	282
+660	247
+663	212
+663	127
+666	158
+666	159
+666	259
+667	125
+669	151
+669	147
+669	126
+670	205
+670	283
+672	179
+672	126
+672	284
+673	285
+674	286
+675	219
+675	131
+680	127
+682	127
+682	212
+683	152
+683	124
+683	254
+689	147
+689	126
+689	127
+689	178
+690	192
+690	263
+690	126
+691	224
+694	144
+701	224
+703	178
+703	192
+703	287
+703	284
+703	124
+704	212
+704	143
+704	288
+705	172
+711	259
+711	162
+712	289
+712	131
+714	290
+716	284
+716	126
+716	143
+718	215
+720	143
+720	146
+720	125
+721	143
+721	152
+721	124
+723	144
+723	126
+723	143
+723	291
+723	175
+723	276
+725	154
+725	145
+725	143
+727	178
+727	152
+727	212
+727	268
+727	243
+729	126
+729	172
+729	212
+731	143
+731	179
+734	125
+734	146
+734	178
+742	186
+742	159
+743	178
+743	131
+744	292
+748	234
+748	293
+748	294
+749	295
+749	296
+751	146
+751	126
+751	297
+751	298
+753	126
+753	124
+754	172
+755	152
+755	143
+755	126
+755	127
+761	147
+761	152
+761	143
+761	188
+764	126
+764	299
+764	147
+770	172
+779	125
+779	300
+779	301
+781	143
+781	160
+781	124
+782	224
+784	302
+784	303
+784	195
+784	131
+787	149
+787	159
+787	131
+788	261
+791	126
+791	127
+791	143
+792	304
+792	143
+794	145
+794	126
+794	127
+796	126
+796	143
+796	146
+797	206
+797	153
+797	126
+797	147
+802	199
+803	224
+805	300
+806	131
+806	186
+806	159
+807	152
+807	126
+807	192
+807	178
+809	288
+809	143
+809	178
+811	305
+811	306
+811	307
+812	308
+813	143
+813	153
+813	154
+813	309
+813	128
+816	227
+817	199
+819	154
+819	144
+819	126
+819	310
+820	311
+822	159
+823	193
+823	247
+824	311
+825	137
+826	151
+826	167
+826	221
+826	238
+829	178
+829	126
+829	147
+829	131
+829	312
+830	153
+830	125
+830	126
+830	313
+830	173
+830	243
+830	174
+830	314
+832	154
+832	188
+832	315
+836	143
+836	147
+836	214
+837	219
+837	316
+843	146
+843	147
+843	125
+843	126
+846	126
+846	124
+846	212
+852	219
+852	131
+853	182
+854	131
+855	317
+855	318
+855	319
+861	143
+861	188
+861	128
+863	158
+863	159
+863	320
+866	172
+873	179
+873	125
+873	144
+874	302
+874	193
+875	163
+875	172
+875	321
+875	322
+877	199
+882	189
+882	323
+884	324
+887	143
+890	152
+890	300
+890	143
+890	173
+890	243
+891	128
+891	266
+891	279
+891	193
+891	161
+891	259
+891	159
+891	131
+893	154
+893	127
+893	143
+893	207
+893	125
+893	144
+893	126
+893	179
+893	214
+893	147
+893	182
+893	188
+894	178
+894	325
+894	126
+894	147
+894	146
+895	149
+895	326
+897	159
+901	126
+901	160
+902	128
+902	243
+902	309
+903	309
+903	128
+903	131
+903	327
+903	194
+904	328
+904	181
+904	329
+904	330
+904	243
+904	237
+904	186
+904	209
+914	153
+914	152
+914	126
+916	128
+916	186
+916	159
+918	285
+919	143
+919	284
+926	224
+931	147
+931	143
+931	191
+931	173
+931	221
+931	233
+932	201
+933	201
+934	143
+934	178
+934	127
+934	144
+935	146
+935	154
+935	147
+935	214
+935	188
+935	331
+936	182
+936	126
+936	147
+936	332
+936	333
+936	334
+937	131
+940	126
+940	154
+940	127
+945	159
+945	131
+947	128
+949	154
+949	147
+949	192
+949	146
+951	127
+951	143
+951	153
+951	147
+955	154
+955	207
+955	172
+956	126
+956	154
+956	128
+959	198
+961	126
+961	127
+961	128
+961	131
+963	146
+963	126
+963	173
+963	128
+963	243
+966	172
+966	335
+967	194
+969	149
+969	159
+969	193
+969	194
+970	336
+972	337
+981	125
+981	151
+981	126
+985	163
+985	338
+985	339
+987	143
+987	147
+987	153
+987	340
+987	341
+987	342
+987	343
+987	128
+987	344
+988	345
+988	346
+988	347
+988	348
+990	143
+990	300
+990	151
+990	349
+1000	126
+1000	143
+1003	147
+1003	143
+1003	124
+1006	266
+1008	350
+1009	350
+1010	165
+1010	248
+1010	159
+1011	186
+1012	152
+1012	254
+1014	351
+1016	252
+1016	348
+1016	352
+1018	353
+1021	354
+1025	143
+1026	143
+1026	154
+1027	193
+1027	184
+1029	154
+1029	127
+1029	252
+1029	179
+1029	126
+1033	283
+1033	212
+1033	124
+1033	275
+1033	355
+1033	356
+1033	241
+1033	357
+1038	125
+1038	143
+1039	143
+1039	127
+1039	179
+1040	143
+1040	147
+1041	126
+1042	305
+1045	127
+1050	127
+1051	160
+1051	126
+1051	182
+1053	149
+1053	358
+1053	158
+1055	359
+1055	281
+1055	303
+1055	217
+1055	360
+1057	186
+1058	126
+1058	143
+1058	127
+1059	127
+1059	147
+1059	214
+1062	361
+1062	205
+1062	283
+1062	362
+1062	363
+1062	364
+1062	365
+1062	221
+1062	243
+1063	366
+1067	230
+1072	152
+1072	315
+1074	367
+1074	143
+1074	147
+1078	148
+1078	199
+1081	127
+1081	178
+1081	126
+1081	254
+1085	230
+1085	368
+1086	369
+1089	284
+1089	179
+1089	151
+1092	370
+1093	178
+1094	178
+1097	371
+1099	209
+1101	372
+1101	159
+1102	127
+1102	152
+1102	124
+1107	147
+1107	154
+1107	160
+1107	182
+1107	214
+1107	151
+1107	222
+1109	131
+1110	143
+1110	124
+1111	125
+1111	144
+1112	147
+1112	134
+1112	373
+1112	374
+1112	276
+1113	126
+1114	124
+1115	186
+1117	147
+1117	153
+1117	143
+1117	125
+1117	151
+1117	145
+1118	160
+1118	126
+1121	154
+1121	144
+1121	214
+1122	126
+1122	147
+1123	159
+1123	282
+1124	303
+1124	375
+1127	376
+1127	197
+1131	154
+1131	126
+1131	144
+1131	214
+1135	377
+1135	378
+1136	206
+1136	143
+1137	186
+1138	186
+1139	186
+1140	326
+1140	379
+1140	380
+1141	224
+1142	224
+1145	155
+1145	356
+1145	381
+1146	194
+1149	248
+1151	209
+1154	146
+1154	154
+1154	173
+1154	272
+1156	146
+1159	126
+1159	178
+1159	179
+1159	382
+1159	383
+1159	159
+1159	384
+1160	148
+1161	184
+1161	217
+1164	385
+1165	152
+1167	147
+1167	126
+1167	143
+1167	386
+1167	243
+1167	128
+1168	350
+1168	387
+1171	126
+1171	143
+1172	127
+1172	124
+1173	388
+1173	182
+1173	214
+1174	266
+1175	151
+1175	143
+1177	197
+1177	148
+1177	198
+1179	375
+1179	389
+1183	284
+1185	127
+1185	212
+1185	173
+1185	175
+1185	268
+1185	390
+1192	193
+1198	181
+1198	291
+1198	391
+1198	332
+1200	126
+1200	143
+1200	147
+1201	143
+1201	147
+1202	331
+1202	143
+1202	179
+1202	125
+1202	145
+1202	173
+1202	392
+1202	275
+1205	124
+1205	143
+1205	126
+1208	252
+1208	134
+1208	275
+1208	272
+1208	264
+1209	152
+1209	154
+1209	393
+1216	176
+1216	143
+1216	126
+1217	147
+1217	144
+1217	127
+1218	125
+1218	126
+1218	151
+1219	212
+1219	143
+1219	126
+1220	126
+1220	143
+1220	147
+1220	151
+1223	282
+1223	190
+1224	331
+1224	151
+1225	209
+1225	149
+1226	133
+1226	253
+1226	128
+1226	330
+1226	237
+1226	238
+1226	131
+1226	394
+1229	149
+1231	193
+1233	180
+1233	395
+1233	396
+1233	397
+1233	237
+1234	131
+1237	172
+1240	127
+1240	152
+1240	243
+1245	125
+1245	126
+1248	182
+1249	182
+1250	182
+1253	198
+1253	184
+1253	199
+1253	131
+1254	144
+1254	398
+1254	191
+1255	399
+1255	178
+1257	127
+1257	143
+1257	152
+1259	149
+1262	131
+1262	193
+1263	199
+1263	184
+1264	212
+1264	127
+1264	125
+1270	152
+1270	124
+1270	143
+1272	186
+1272	159
+1273	126
+1273	214
+1273	207
+1274	159
+1274	131
+1276	353
+1276	350
+1277	143
+1277	124
+1280	367
+1280	151
+1280	143
+1282	149
+1283	400
+1283	306
+1285	124
+1285	152
+1285	160
+1286	401
+1288	133
+1288	188
+1288	126
+1289	151
+1289	160
+1289	152
+1289	277
+1294	402
+1294	188
+1294	147
+1294	182
+1294	173
+1294	291
+1294	275
+1294	221
+1295	200
+1295	403
+1298	404
+1298	127
+1298	147
+1298	207
+1301	341
+1301	405
+1301	182
+1301	173
+1301	237
+1301	243
+1301	406
+1302	407
+1304	254
+1304	152
+1304	143
+1304	126
+1305	198
+1306	159
+1307	152
+1309	152
+1309	126
+1309	143
+1310	408
+1310	202
+1316	163
+1316	172
+1316	126
+1316	143
+1316	214
+1317	126
+1317	178
+1317	127
+1317	409
+1326	126
+1327	410
+1327	128
+1327	246
+1327	243
+1327	131
+1327	394
+1327	159
+1327	186
+1327	149
+1327	215
+1327	259
+1328	124
+1328	200
+1328	152
+1328	126
+1328	411
+1329	376
+1330	309
+1330	175
+1330	376
+1331	147
+1331	126
+1331	173
+1331	276
+\.
+
+
+--
+-- Data for Name: crafted_by; Type: TABLE DATA; Schema: public
+--
+
+COPY public.crafted_by (rug, factory) FROM stdin;
+346	48
+347	197
+348	138
+349	154
+350	262
+351	74
+352	150
+353	246
+354	79
+355	188
+356	48
+357	188
+358	82
+359	82
+360	117
+361	49
+362	49
+363	139
+364	139
+365	139
+366	19
+367	17
+368	118
+368	177
+369	235
+370	230
+371	44
+372	188
+373	251
+374	202
+375	102
+376	121
+377	256
+378	79
+379	188
+380	41
+381	99
+382	192
+383	81
+384	9
+385	144
+386	136
+387	118
+387	274
+388	257
+389	41
+390	116
+391	48
+392	246
+393	214
+394	245
+395	73
+396	188
+397	51
+398	53
+399	260
+400	48
+401	108
+402	44
+403	48
+404	188
+405	56
+406	150
+407	283
+408	36
+409	136
+410	206
+411	230
+412	175
+413	68
+414	188
+415	188
+416	206
+417	118
+418	246
+419	184
+419	129
+419	183
+419	36
+419	210
+419	180
+419	26
+420	188
+421	152
+422	35
+423	36
+423	173
+424	97
+426	152
+427	188
+428	246
+429	17
+430	36
+431	48
+431	295
+432	129
+433	82
+434	264
+435	148
+436	172
+437	17
+438	17
+439	49
+440	79
+441	42
+442	13
+442	177
+443	86
+444	158
+445	44
+446	184
+447	52
+448	118
+449	170
+450	17
+451	278
+452	97
+453	79
+454	82
+455	206
+456	38
+457	48
+458	206
+459	79
+460	123
+461	92
+462	48
+463	165
+464	112
+465	157
+466	102
+466	234
+467	61
+468	188
+469	186
+470	186
+471	73
+472	70
+473	5
+474	118
+475	188
+475	69
+475	290
+476	134
+477	206
+478	246
+479	144
+480	141
+481	42
+482	64
+483	188
+483	281
+484	207
+485	246
+486	75
+487	154
+488	64
+489	223
+490	242
+491	283
+492	238
+493	91
+493	206
+494	82
+495	188
+496	20
+497	206
+498	141
+499	236
+500	188
+501	163
+502	272
+503	49
+504	8
+505	190
+506	36
+507	49
+508	236
+509	78
+510	236
+511	236
+512	188
+513	200
+514	287
+515	90
+516	82
+517	188
+518	206
+519	128
+520	75
+521	9
+521	177
+522	187
+523	205
+523	274
+524	36
+525	188
+526	184
+527	17
+528	70
+529	188
+530	82
+531	248
+532	296
+533	48
+534	68
+535	246
+536	289
+537	206
+538	118
+539	2
+540	114
+541	97
+542	228
+543	27
+544	48
+545	165
+546	82
+546	211
+547	136
+548	4
+549	243
+550	82
+551	228
+552	248
+553	116
+554	262
+555	210
+556	188
+557	151
+558	151
+559	151
+560	152
+561	129
+562	278
+563	36
+564	36
+565	36
+566	36
+567	17
+568	149
+569	6
+570	177
+571	34
+572	287
+573	188
+574	249
+575	294
+576	228
+577	206
+578	65
+579	118
+580	8
+581	9
+582	188
+583	206
+584	293
+585	136
+586	194
+587	44
+588	184
+588	267
+589	178
+590	136
+591	118
+591	23
+592	280
+593	206
+593	91
+594	68
+595	259
+596	81
+597	48
+598	261
+599	237
+600	118
+600	177
+601	8
+602	17
+603	279
+604	188
+605	275
+606	177
+607	177
+608	177
+609	82
+610	228
+611	48
+612	25
+613	49
+614	184
+615	54
+616	188
+617	118
+618	38
+619	188
+620	182
+620	118
+621	9
+621	159
+622	6
+623	101
+624	101
+625	206
+626	130
+627	118
+628	48
+629	184
+630	148
+631	148
+632	148
+633	148
+634	82
+636	206
+637	287
+638	104
+639	246
+640	246
+641	48
+642	170
+643	283
+644	52
+645	231
+646	114
+647	38
+648	62
+649	188
+650	82
+651	213
+652	28
+653	36
+654	255
+655	206
+656	246
+657	48
+657	243
+658	118
+658	149
+659	290
+660	184
+661	136
+662	136
+663	100
+664	52
+665	136
+666	289
+667	118
+668	116
+669	48
+670	53
+671	250
+672	48
+673	134
+674	79
+675	31
+676	14
+677	260
+678	30
+679	201
+680	70
+681	285
+682	118
+682	274
+683	48
+683	45
+684	188
+685	115
+686	119
+687	46
+688	279
+689	118
+690	228
+691	68
+692	262
+693	188
+694	118
+695	73
+696	252
+697	253
+698	99
+699	217
+700	235
+701	20
+702	245
+703	150
+704	287
+705	150
+706	184
+707	254
+708	254
+709	236
+710	38
+711	155
+712	142
+713	188
+714	196
+715	70
+716	50
+717	20
+718	236
+719	23
+720	118
+721	48
+722	131
+723	114
+724	136
+725	146
+726	197
+727	206
+728	174
+729	48
+730	49
+731	230
+732	246
+733	47
+734	23
+735	210
+736	284
+737	83
+738	17
+739	34
+739	153
+740	4
+741	17
+742	21
+743	188
+744	145
+745	97
+746	233
+747	262
+748	168
+749	126
+750	170
+751	199
+752	116
+753	250
+754	43
+755	4
+756	291
+757	99
+757	111
+758	77
+759	230
+760	38
+760	229
+761	163
+762	246
+763	157
+764	202
+765	188
+766	290
+767	80
+768	36
+769	36
+770	25
+771	13
+772	157
+773	14
+774	14
+775	82
+776	225
+777	152
+778	188
+779	161
+780	221
+781	118
+781	143
+782	148
+783	148
+784	206
+785	97
+786	189
+787	206
+788	148
+789	136
+790	101
+791	228
+792	48
+793	225
+794	293
+795	73
+796	188
+797	48
+798	9
+799	86
+800	171
+801	298
+802	148
+803	148
+804	225
+805	48
+806	4
+807	24
+808	200
+809	48
+810	82
+811	17
+812	215
+813	196
+814	99
+815	89
+816	113
+817	17
+818	9
+819	25
+820	184
+821	184
+822	184
+823	184
+824	184
+825	38
+826	116
+827	132
+828	206
+829	206
+830	82
+831	276
+832	188
+833	268
+834	147
+835	224
+836	8
+837	188
+838	137
+839	23
+840	188
+841	68
+842	118
+843	82
+844	293
+845	205
+846	188
+847	162
+848	68
+849	243
+850	55
+851	2
+852	206
+853	246
+854	206
+855	206
+856	105
+857	188
+858	17
+859	48
+859	58
+860	132
+861	188
+862	184
+863	70
+864	261
+865	195
+866	259
+867	9
+868	81
+869	8
+870	118
+871	225
+872	52
+873	169
+874	297
+874	184
+875	20
+876	136
+877	244
+878	196
+879	277
+880	17
+881	92
+882	73
+883	188
+884	156
+885	39
+886	133
+887	68
+888	42
+889	241
+890	150
+891	206
+892	247
+893	188
+894	228
+895	22
+896	53
+897	82
+898	48
+899	218
+900	107
+901	206
+902	103
+903	17
+904	98
+905	75
+906	93
+907	27
+908	273
+909	83
+910	42
+911	188
+912	4
+913	87
+914	48
+915	188
+916	48
+917	223
+918	278
+919	17
+920	216
+921	255
+922	188
+923	191
+924	255
+925	40
+925	88
+926	43
+927	188
+928	246
+929	246
+930	7
+931	108
+932	3
+933	140
+934	52
+935	52
+936	287
+937	188
+938	257
+939	266
+940	48
+941	206
+942	262
+943	188
+943	24
+943	228
+944	222
+945	52
+946	269
+947	118
+947	209
+948	205
+949	206
+950	246
+951	118
+952	178
+953	246
+954	68
+955	206
+956	188
+957	240
+958	110
+959	38
+960	44
+961	241
+962	249
+963	125
+964	200
+965	246
+966	259
+967	116
+968	44
+969	53
+970	184
+971	168
+972	263
+973	246
+974	135
+975	266
+976	220
+977	203
+978	198
+979	198
+980	283
+981	48
+982	206
+983	82
+984	206
+985	206
+986	15
+987	177
+988	208
+989	46
+990	224
+991	2
+992	10
+993	94
+994	188
+995	225
+996	246
+997	219
+998	49
+999	118
+1000	164
+1001	270
+1002	122
+1003	48
+1004	188
+1005	48
+1006	79
+1007	257
+1008	150
+1009	20
+1010	24
+1011	87
+1012	118
+1013	217
+1014	17
+1015	293
+1016	118
+1017	118
+1018	178
+1019	9
+1019	204
+1020	136
+1021	16
+1022	99
+1023	99
+1024	188
+1025	268
+1026	95
+1027	177
+1028	165
+1029	287
+1030	73
+1031	171
+1032	221
+1033	108
+1033	212
+1034	261
+1035	287
+1036	228
+1037	226
+1038	99
+1039	188
+1040	48
+1041	268
+1042	223
+1043	17
+1044	49
+1045	134
+1046	261
+1047	206
+1048	230
+1049	8
+1050	188
+1051	169
+1052	30
+1053	166
+1054	59
+1055	206
+1056	70
+1057	44
+1058	188
+1058	72
+1059	24
+1060	239
+1061	17
+1062	57
+1063	196
+1064	36
+1065	66
+1066	124
+1067	227
+1068	291
+1069	136
+1070	235
+1071	210
+1072	68
+1073	255
+1074	48
+1075	230
+1076	287
+1077	221
+1078	68
+1079	165
+1080	53
+1081	48
+1082	235
+1083	236
+1084	8
+1085	87
+1086	262
+1087	84
+1088	176
+1089	48
+1090	48
+1091	287
+1092	85
+1093	8
+1094	22
+1095	102
+1096	93
+1097	93
+1098	2
+1099	148
+1100	96
+1101	101
+1102	188
+1103	60
+1104	127
+1105	21
+1106	8
+1107	206
+1108	120
+1109	264
+1110	48
+1111	188
+1112	250
+1113	194
+1114	48
+1115	48
+1116	49
+1117	82
+1118	48
+1118	188
+1119	206
+1120	118
+1121	194
+1122	99
+1123	262
+1124	246
+1125	247
+1126	82
+1127	196
+1128	146
+1129	288
+1130	286
+1131	188
+1131	82
+1132	154
+1133	99
+1134	206
+1135	30
+1136	48
+1137	9
+1138	9
+1139	9
+1140	118
+1141	255
+1142	255
+1143	82
+1144	36
+1145	108
+1146	290
+1147	188
+1148	188
+1149	17
+1150	5
+1151	20
+1152	188
+1153	249
+1154	223
+1155	206
+1156	36
+1157	33
+1158	53
+1159	242
+1160	148
+1161	148
+1162	118
+1162	274
+1163	270
+1164	11
+1165	18
+1166	202
+1167	148
+1168	118
+1169	66
+1170	79
+1171	48
+1172	82
+1173	224
+1174	48
+1175	17
+1176	32
+1177	34
+1178	206
+1179	270
+1180	49
+1181	240
+1182	118
+1183	8
+1184	258
+1185	82
+1185	211
+1186	225
+1187	76
+1188	168
+1189	84
+1190	20
+1191	206
+1192	25
+1193	25
+1194	152
+1195	150
+1196	71
+1197	2
+1198	184
+1199	8
+1200	109
+1201	48
+1202	184
+1203	52
+1204	206
+1205	48
+1205	45
+1206	150
+1207	150
+1208	71
+1209	265
+1210	29
+1211	184
+1212	82
+1213	213
+1214	118
+1215	160
+1216	188
+1217	149
+1218	48
+1219	188
+1219	282
+1220	167
+1221	204
+1222	188
+1223	262
+1224	253
+1225	38
+1226	184
+1227	118
+1228	92
+1229	47
+1230	272
+1231	188
+1232	206
+1233	250
+1234	188
+1235	266
+1236	246
+1237	270
+1238	7
+1239	86
+1240	287
+1241	273
+1242	232
+1243	232
+1244	239
+1245	48
+1246	81
+1247	19
+1248	136
+1249	136
+1250	136
+1251	175
+1252	25
+1253	70
+1254	116
+1255	9
+1256	271
+1257	118
+1258	243
+1259	79
+1260	206
+1261	202
+1262	262
+1263	136
+1264	188
+1265	107
+1266	37
+1267	262
+1268	8
+1268	195
+1269	44
+1270	48
+1271	64
+1272	21
+1273	188
+1273	106
+1274	79
+1275	38
+1276	34
+1277	188
+1278	245
+1279	193
+1280	48
+1281	188
+1282	165
+1283	255
+1284	8
+1285	206
+1286	196
+1286	236
+1287	100
+1288	99
+1289	118
+1289	69
+1290	206
+1291	148
+1292	48
+1293	24
+1294	114
+1295	48
+1296	28
+1297	152
+1298	206
+1299	292
+1300	223
+1301	84
+1302	118
+1303	181
+1304	18
+1305	246
+1306	192
+1307	188
+1308	127
+1309	48
+1310	179
+1311	200
+1312	122
+1313	206
+1314	206
+1315	8
+1316	188
+1317	287
+1318	196
+1319	86
+1320	236
+1321	63
+1322	206
+1323	118
+1323	274
+1324	255
+1325	141
+1326	17
+1327	17
+1328	48
+1329	145
+1330	4
+1331	185
+1332	70
+\.
+
+
+--
+-- Data for Name: factories; Type: TABLE DATA; Schema: public
+--
+
+COPY public.factories (id, name, founded, website, located_in) FROM stdin;
+2	Abyaneh Artisanal Rugs	2003	www.abyanehartisanalrugs.com	2
+3	Achaemenid Clan Brilliant Weaves	2008	www.achaemenidclanbrilliantweaves.com	3
+4	Achaemenid Clan Traditional Textiles	2009	www.achaemenidclantraditionaltextiles.com	4
+5	Achaemenid Roamer Grandiose Carpets	2000	www.achaemenidroamergrandiosecarpets.com	5
+6	Achaemenid Tribe Artisan Rugs	2014	www.achaemenidtribeartisanrugs.com	6
+7	Persian Tribe Crafted Carpets	2004	www.achaemenidtribecraftedcarpets.com	7
+8	Persian Tribe Looms	2015	www.achaemenidtribelooms.com	8
+9	Fars Tribe Master Weavers	1995	www.achaemenidtribemasterweavers.com	9
+10	Ahvaz Authentic Carpets	2020	www.ahvazauthenticcarpets.com	10
+11	Ahvaz Authentic Rugs	2011	www.ahvazauthenticrugs.com	11
+12	Ahvaz Handcrafted Rugs	2002	www.ahvazhandcraftedrugs.com	12
+13	Ahvaz Silk Artisans	2007	www.ahvazsilkartisans.com	13
+14	Ahvaz Wool Creations	2000	www.ahvazwoolcreations.com	14
+15	Arak Artistic Rugs	2018	www.arakartisticrugs.com	15
+16	Arak Heritage Carpets	2013	www.arakheritagecarpets.com	16
+17	Arak Silk Dynasty	2011	www.araksilkdynasty.com	17
+18	Ardabil Artisan Rugs	2013	www.ardabilartisanrugs.com	18
+19	Ardabil Artistic Rugs	2010	www.ardabilartisticrugs.com	19
+20	Ardebil Family Weavers	2016	www.ardebilfamilyweavers.com	20
+21	Ardebil Wool Dynasty	1996	www.ardebilwooldynasty.com	9
+22	Artisanal Heritage Carpets	2017	www.artisanalheritagecarpets.com	21
+23	Artisanal Luxe Rugs	2016	www.artisanalluxerugs.com	22
+24	Artisanal Royal Rugs	2016	www.artisanalroyalrugs.com	23
+25	Artisanal Splendor Rugs	2013	www.artisanalsplendorrugs.com	10
+26	Artistic Grandeur Rugs	2006	www.artisticgrandrugs.com	24
+27	Artistic Noble Rugs	2009	www.artisticnoblerugs.com	25
+28	Authentic Luxe Carpets	2019	www.authenticluxecarpets.com	26
+29	Bam Beautifully Crafted Carpets	2018	www.bambeautifullycraftedcarpets.com	27
+30	Bandar Abbas Family Weavers	1995	www.bandarabbasfamilyweavers.com	28
+31	Bandar Abbas Silk Dynasty	2019	www.bandarabbassilkdynasty.com	29
+32	Bandar Bonanza Rugs	2012	www.bandarbonanzarugs.com	30
+33	Bandar Silk & Wool	2016	www.bandarsilkwool.com	31
+34	Beautifully Crafted Elegance	2012	www.beautifullycraftedelegance.com	32
+35	Beautifully Crafted Luxe	2016	www.beautifullycraftedluxe.com	33
+36	Birjand Beautiful Carpets	2014	www.birjandbeautifulcarpets.com	34
+37	Birjand Beautiful Rugs	2016	www.birjandbeautifulrugs.com	35
+38	Bojnourd Beautiful Rugs	2013	www.bojnourdbeautifulrugs.com	36
+39	Borujerd Brilliant Weaves	2017	www.borujerdbrilliantweaves.com	37
+40	Brilliant Artisanal Weaves	2005	www.brilliantartisanalweaves.com	38
+41	Clan Dynasty Majestic Carpets	2015	www.clandynastymajesticcarpets.com	39
+42	Clan Heritage Handmade Rugs	2014	www.clanheritagehandmaderugs.com	40
+43	Clan Legacy Carpets	2017	www.clanlegacycarpets.com	41
+44	Clan Royal Masterful Rugs	2009	www.clanroyalmasterfulrugs.com	42
+45	Clan Royal Silk Splendor	2019	www.clanroyalsilksplendor.com	43
+46	Clan Superior Rugs	2000	www.clansuperiorrugs.com	44
+47	Classic Elegance Carpets	2019	www.classicelegancecarpets.com	45
+48	Dynasty Clan Fine Art Carpets	2020	www.dynastyclanfineartcarpets.com	46
+49	Dynasty Clan Kashan Creations	2007	www.dynastyclankashancreations.com	47
+50	Dynasty Clan Klassic Carpets	2018	www.dynastyclanklassiccarpets.com	48
+51	Dynasty Clan Majestic Carpets	2017	www.dynastyclanmajesticcarpets.com	49
+52	Dynasty Nomadic Masterpieces	2005	www.dynastynomadicmasterpieces.com	37
+53	Elegant Artistry Carpets	2005	www.elegantartistrycarpets.com	50
+54	Eslamshahr Wool Creations	2016	www.eslamshahrwoolcreations.com	18
+55	Exquisite Handcrafted Rugs	1891	www.exquisitehandcraftedrugs.com	49
+56	Fasa Fine Art Rugs	2008	www.fasafineartrugs.com	51
+57	Fine Art Masterpieces	2021	www.fineartmasterpieces.com	52
+58	Fine Artisan Carpets	2017	www.fineartisancarpets.com	53
+59	Fine Artisanal Carpets	2009	www.fineartisanalcarpets.com	54
+60	Fine Artisanal Rugs	1869	www.fineartisanalrugs.com	55
+61	Ghazvin Grandiose Carpets	2016	www.ghazvingrandiosecarpets.com	56
+62	Golpayegan Grand Carpets	2018	www.golpayegangrandcarpets.com	57
+63	Gonbad Great Weaves	1878	www.gonbadgreatweaves.com	58
+64	Gorgan Artistic Rugs	1854	www.gorganartisticrugs.com	59
+65	Gorgan Grand Carpets	2010	www.gorgangrandcarpets.com	60
+66	Gorgan Grandiose Rugs	2015	www.gorgangrandioserugs.com	61
+67	Gorgan Silk Artisans	1862	www.gorgansilkartisans.com	62
+68	Gorgan Silk Creations	2015	www.gorgansilkcreations.com	63
+69	Gorgan Silk Elegance	2015	www.gorgansilkelegance.com	64
+70	Grand Carpets Artistry	2009	www.grandcarpetsartistry.com	65
+71	Grandiose Luxe Carpets	2017	www.grandioseluxecarpets.com	59
+72	Great Artisanal Weaves	2013	www.greatartisanalweaves.com	66
+73	Hamedan Heritage Carpets	2004	www.hamedanheritagecarpets.com	67
+74	Hamedan Yarn & Looms Factory	1852	www.hamedanyarnlooms.com	68
+75	Handcrafted Silk Rugs	1922	www.handcraftedsilkrugs.com	69
+76	Ilam Impeccable Carpets	2019	www.ilamimpeccablecarpets.com	70
+77	Ilam Impeccable Rugs	2016	www.ilamimpeccablerugs.com	71
+78	Impeccable Silk Carpets	2022	www.impeccablesilkcarpets.com	72
+79	Isfahan Fine Rugs Co.	2013	www.isfahanfinerugs.com	73
+80	Isfahan Silk Excellence	2015	www.isfahansilkexcellence.com	74
+81	Isfahan Weaving Industries	2012	www.isfahanweaving.com	75
+82	Isfahan Wool Artisans	2012	www.isfahanwoolartisans.com	76
+83	Isfahan Wool Masters	2004	www.isfahanwoolmasters.com	77
+84	Jiroft Jovial Rugs	1988	www.jiroftjovialrugs.com	78
+85	Jovial Silk Rugs	2004	www.jovialsilkrugs.com	79
+86	Karaj Handcrafted Rugs	2016	www.karajhandcraftedrugs.com	80
+87	Karaj Klassic Weaves	2000	www.karajklassicweaves.com	81
+88	Karaj Silk Heritage	2000	www.karajsilkheritage.com	82
+89	Kashan Silk Excellence	2017	www.kashansilkexcellence.com	83
+90	Kashan Wool Dynasty	2019	www.kashanwooldynasty.com	84
+91	Kashan Wool Masters	2016	www.kashanwoolmasters.com	85
+92	Kashmar Fine Art Carpets	2015	www.kashmarfineartcarpets.com	86
+93	Kerman Carpet Creations	1920	www.kermancarpetcreations.com	87
+94	Kerman Handcrafted Rugs	2005	www.kermanhandcraftedrugs.com	88
+95	Kerman Silk Dynasty	2017	www.kermansilkdynasty.com	89
+96	Kerman Silk Excellence	1971	www.kermansilkexcellence.com	90
+97	Kerman Silk Masters	2016	www.kermansilkmasters.com	91
+98	Kermani Fine Art Carpets	2015	www.kermanifineartcarpets.com	92
+99	Kermani Handmade Rugs	2006	www.kermanihandmaderugs.com	93
+100	Kermanshah Crafted Carpets	2014	www.kermanshahcraftedcarpets.com	94
+101	Kermanshah Family Weavers	2010	www.kermanshahfamilyweavers.com	95
+102	Kermanshah Handmade Rugs	2014	www.kermanshahhandmaderugs.com	96
+103	Kermanshah Masterful Weaves	2014	www.kermanshahmasterfulweaves.com	97
+104	Kermanshah Silk Excellence	2003	www.kermanshahsilkexcellence.com	98
+105	Kermanshah Silk Heritage	2010	www.kermanshahsilkheritage.com	99
+106	Kermanshah Silk Masters	2014	www.kermanshahsilmasters.com	100
+107	Khomein Klassic Carpets	1996	www.khomeinklassiccarpets.com	101
+108	Khorramabad Carpets Co.	2015	www.khorramabadcarpets.com	102
+109	Khorramabad Handcrafted Rugs	2015	www.khorramabadhandcraftedrugs.com	103
+110	Khorramabad Silk Treasures	2021	www.khorramabadsilktreasures.com	104
+111	Kin Clan Legacy Carpets	2015	www.kinclanlegacycarpets.com	105
+112	Kin Folk Authentic Carpets	1997	www.kinfolkauthenticcarpets.com	106
+113	Kin Folk Fine Art Carpets	2013	www.kinfolkfineartcarpets.com	107
+114	Kin Folk Grand Carpets	2017	www.kinfolkgrandcarpets.com	108
+115	Kin Folk Masterful Rugs	2016	www.kinfolkmasterfulrugs.com	109
+116	Kin Folk Masterpieces	2017	www.kinfolkmasterpieces.com	110
+117	Kin Folk Noble Rugs	2019	www.kinfolknoblerugs.com	111
+118	Kin Folk Nonpareil Carpets	2011	www.kinfolknonpareilcarpets.com	105
+119	Kin Folk Sumptuous Carpets	2020	www.kinfolksumptuouscarpets.com	112
+120	Kin Tradition Carpets	2012	www.kintraditioncarpets.com	113
+121	King's Silk Journey	2013	www.kingssilkjourney.com	114
+122	King's Silk Legacy	2011	www.kingssilklegacy.com	115
+123	King's Silk Passage	2000	www.kingssilkpassage.com	116
+124	King's Silk Path	1997	www.kingssilkpath.com	117
+125	Kish Kashan Creations	2019	www.kishkashancreations.com	45
+126	Klassic Artisanal Creations	2011	www.klassicartisanalcreations.com	118
+127	Klassic Silk Carpets	2012	www.klassicsilkcarpets.com	119
+128	Klassic Silk Weaves	2013	www.klassicsilkweaves.com	120
+129	Luxurious Artisan Rugs	2012	www.luxuriousartisanrugs.com	10
+130	Majestic Artisanal Weaves	2003	www.majesticartisanalweaves.com	121
+131	Majestic Elegance Rugs	2015	www.majesticelegancerugs.com	122
+132	Majestic Heritage Weaves	2006	www.majesticheritageweaves.com	123
+133	Majestic Luxe Carpets	2000	www.majesticluxecarpets.com	113
+134	Majestic Masterful Carpets	2004	www.majesticmasterfulcarpets.com	124
+135	Malard Silk Excellence	1983	www.malardsilkexcellence.com	125
+136	Malayer Masterpieces	2015	www.malayermasterpieces.com	111
+137	Maragheh Master Crafters	2017	www.maraghehmastercrafters.com	126
+138	Marand Majestic Rugs	1874	www.marandmajesticrugs.com	127
+139	Marand Masterful Weaves	1930	www.marandmasterfulweaves.com	128
+140	Marivan Majestic Carpets	2019	www.marivanmajesticcarpets.com	129
+141	Marivan Masterful Carpets	2011	www.marivanmasterfulcarpets.com	130
+142	Mashhad Master Weavers	2017	www.mashhadmasterweavers.com	131
+143	Mashhad Silk Dynasty	2014	www.mashhadsilkdynasty.com	115
+144	Mashhad Wool Creations	2011	www.mashhadwoolcreations.com	132
+145	Mashhad Wool Excellence	1823	www.mashhadwoolexcellence.com	133
+146	Masjed Soleyman Silk Sensation	1999	www.masjedsoleymansilksensation.com	134
+147	Masterful Crafted Rugs	2013	www.masterfulcraftedrugs.com	135
+148	Masterful Silk Rugs	2014	www.masterfulsilkrugs.com	136
+149	Masterful Silk Weaves	2016	www.masterfulsilkweaves.com	137
+150	Masterful Woolen Weaves	2014	www.masterfulwoolenweaves.com	138
+151	Masterpiece Silk Weaves	1906	www.masterpiecesilkweaves.com	139
+152	Meybod Masterful Rugs	2013	www.meybodmasterfulrugs.com	49
+153	Minab Majestic Carpets	2000	www.minabmajesticcarpets.com	9
+154	Naein Noble Weaves	2015	www.naeinnobleweaves.com	140
+155	Nain Noble Rugs	2015	www.nainnoblerugs.com	141
+156	Neyshabur Noble Carpets	2004	www.neyshaburnoblerugs.com	142
+157	Noble Handcrafted Rugs	2010	www.noblehandcraftedrugs.com	143
+158	Nomad Roaming Textiles	2014	www.achaemenidroamingtextiles.com	144
+159	Nonpareil Silk Carpets	2012	www.nonpareilsilkcarpets.com	145
+160	Nur Nonpareil Carpets	2016	www.nurnonpareilcarpets.com	146
+161	Pars Persian Rugs	2003	www.parspersianrugs.com	147
+162	Persian Nomadic Creations	1525	www.achaemenidnomadiccreations.com	148
+163	Persian Nomadic Textiles	2016	www.achaemenidnomadictextiles.com	149
+164	Qajar Silk Legacy	2015	www.qajarsilklegacy.com	100
+165	Qajar Silk Odyssey	2015	www.qajarsilkodyssey.com	150
+166	Qajar Silk Route	2001	www.qajarsilkroute.com	151
+167	Qajar Silk Treasures	2011	www.qajarsilktreasures.com	60
+168	Qazvin Quality Rugs	2016	www.qazvinqualityrugs.com	152
+169	Qazvin Quality Weaves	2017	www.qazvinqualityweaves.com	153
+170	Qazvin Silk Excellence	2015	www.qazvinsilkexcellence.com	154
+171	Qazvin Silk Heritage	2013	www.qazvinsilkheritage.com	155
+172	Qazvin Wool Creations	2001	www.qazvinwoolcreations.com	156
+173	Qom Artisan Carpets	2000	www.qomartisancarpets.com	157
+174	Qom Quaint Rugs	2020	www.qomquaintrugs.com	158
+175	Qom Silk & Wool Carpets	2013	www.qomsilkwoolcarpets.com	159
+176	Qom Silk Creations	2019	www.qomsilkcreations.com	10
+177	Quaint Luxe Rugs	2013	www.quaintluxerugs.com	160
+178	Quality Artisanal Weaves	2014	www.qualityartisanalweaves.com	161
+179	Quality Silk Rugs	2016	www.qualitysilkrugs.com	162
+180	Quality Silk Splendor	2016	www.qualitysilksplendor.com	163
+181	Quchan Quality Rugs	2018	www.quchanqualityrugs.com	164
+182	Rasht Royal Rugs	2012	www.rashtroyalrugs.com	165
+183	Rasht Silk Creations	2006	www.rashtsilkcreations.com	166
+184	Rasht Silk Elegance	2010	www.rashtsilkelegance.com	167
+185	Rasht Wool Masters	2016	www.rashtwoolmasters.com	143
+186	Roamer Clan Beautifully Crafted Carpets	2010	www.roamerclanbeautifullycraftedcarpets.com	168
+187	Roamer Clan Handcrafted Rugs	2010	www.roamerclanhandcraftedrugs.com	169
+188	Roamer Clan Jovial Rugs	2019	www.roamerclanjovialrugs.com	170
+189	Roamer Clan Master Crafters	1997	www.roamerclanmastercrafters.com	53
+190	Roamer Clan Master Weavers	2017	www.roamerclanmasterweavers.com	171
+191	Roamer Clan Quaint Rugs	2007	www.roamerclanquaintrugs.com	172
+192	Roamer Clan Quality Weaves	2006	www.roamerclanqualityweaves.com	173
+193	Roamer Clan Shaggy Rugs	1995	www.roamerclanshaggyrugs.com	174
+194	Roamer Clan Silk Creations	2013	www.roamerclansilkcreations.com	175
+195	Roamer Clan Zestful Weaves	2013	www.roamerclanzestfulweaves.com	58
+196	Roamer Dynasty Looms	2012	www.roamerdynastylooms.com	176
+197	Roamer Dynasty Tradition Rugs	2003	www.roamerdynastytraditionrugs.com	177
+198	Roamer Kin Artisan Rugs	1988	www.roamerkinartisanrugs.com	178
+199	Roamer Zesty Carpets	2014	www.roamerzestycarpets.com	179
+200	Roaming Dynasty Tradition Rugs	2019	www.roamingdynastytraditionrugs.com	180
+201	Roaming Kin Artisanal Weaves	2009	www.roamingkinartisanalweaves.com	181
+202	Roaming Kin Artistic Rugs	2015	www.roamingkinartisticrugs.com	51
+203	Roaming Kin Beautiful Rugs	2016	www.roamingkinbeautifulrugs.com	182
+204	Roaming Kin Impeccable Carpets	1996	www.roamingkinimpeccablecarpets.com	183
+205	Roaming Kin Majestic Rugs	2011	www.roamingkinmajesticrugs.com	184
+206	Roaming Kin Shimmering Rugs	2019	www.roamingkinshimmeringrugs.com	185
+207	Roaming Kin Silk Sensation	1952	www.roamingkinsilksensation.com	186
+208	Roaming Kin Zephyr Carpets	1628	www.roamingkinzephyrcarpets.com	187
+209	Royal Crafted Splendor	2014	www.royalcraftedsplendor.com	188
+210	Royal Masterful Rugs	2017	www.royalmasterfulrugs.com	189
+211	Royal Silk Journey	2016	www.royalsilkjourney.com	190
+212	Royal Silk Odyssey	2022	www.royalsilkodyssey.com	191
+213	Royal Silk Passage	2012	www.royalsilkpassage.com	192
+214	Sabzevar Superior Rugs	2010	www.sabzevarsuperiorrugs.com	193
+215	Safavid Royal Silk	2014	www.safavidroyalsilk.com	126
+216	Safavid Silk Heritage	1996	www.safavidsilkheritage.com	194
+217	Safavid Silk Journey	2000	www.safavidsilkjourney.com	195
+218	Safavid Silk Route	2018	www.safavidsilkroute.com	192
+219	Sanandaj Rug Crafters	2001	www.sanandajrugcrafters.com	196
+220	Sanandaj Silk & Wool	2017	www.sanandajsilkwool.com	10
+221	Sanandaj Silk Masters	2021	www.sanandajsilkmasters.com	197
+222	Sari Handcrafted Rugs	2012	www.sarihandcraftedrugs.com	198
+223	Sari Silk Treasures	2014	www.sarisilktreasures.com	199
+224	Saveh Silk Creations	1996	www.savehsilkcreations.com	200
+225	Semnan Superior Weaves	2012	www.semnanSuperiorweaves.com	201
+226	Shaggy Elegance Rugs	2023	www.shaggyelegancerugs.com	158
+227	Shahin Shaggy Rugs	2017	www.shahinshaggyrugs.com	202
+228	Shahr-e Kord Family Weavers	2018	www.shahrekordfamilyweavers.com	203
+229	Shahr-e Qods Wool Artisans	2016	www.shahreqodswoolartisans.com	204
+230	Shahrekord Silk Splendor	2015	www.shahrekordsilksplendor.com	205
+231	Shahroud Silk Splendor	1838	www.shahroudsilksplendor.com	206
+232	Shahrud Shimmering Rugs	1899	www.shahrudshimmeringrugs.com	207
+233	Shimmering Silk Rugs	2008	www.shimmeringsilkrugs.com	46
+234	Shiraz Silk Artisans	2016	www.shirazsilkartisans.com	208
+235	Shiraz Silk Dynasty	1821	www.shirazsilkdynasty.com	209
+236	Shiraz Silk Treasures	1998	www.shirazsilktreasures.com	210
+237	Shiraz Weaving Industries	2002	www.shirazweaving.com	61
+238	Shiraz Wool Artisans	1982	www.shirazwoolartisans.com	211
+239	Shush Sumptuous Carpets	2015	www.shushsumptuouscarpets.com	212
+240	Silk Creations Grandeur	1758	www.silkcreationsgrandeur.com	213
+241	Silk Dynasty Passage	2017	www.silkdynastypassage.com	10
+242	Silk Dynasty Trail	2019	www.silkdynastytrail.com	214
+243	Silk Dynasty Treasures	2022	www.silkdynastytreasures.com	52
+244	Silk King Creations	2018	www.silkingcreations.com	176
+245	Silk Road Sovereign	2015	www.silkroadsovereign.com	215
+246	Silk Sensation Splendor	1980	www.silksensationsplendor.com	216
+247	Silk Splendor Creations	2012	www.silksplendorcreations.com	100
+248	Silk Splendor Sensation	2004	www.silksplendorsensation.com	188
+249	Sumptuous Silk Carpets	2013	www.sumptuoussilkcarpets.com	217
+250	Superior Artisanal Rugs	2020	www.superiorartisanalrugs.com	104
+251	Superior Silk Rug Crafters	2013	www.superiorsilkrugcrafters.com	165
+252	Superior Silk Weaves	2012	www.superiorsilkweaves.com	218
+253	Tabriz Brothers Weaving	2017	www.tabrizbrothersweaving.com	219
+254	Tabriz Carpet Crafters	1784	www.tabrizcarpetcrafters.com	220
+255	Tabriz Handcrafted Rugs	2010	www.tabrizhandcraftedrugs.com	10
+256	Tabriz Silk Excellence	2021	www.tabrizsilkexcellence.com	221
+257	Tehran Quality Weaves	1996	www.tehranqualityweaves.com	222
+258	Tonekabon Traditional Textiles	2017	www.tonekabontraditionaltextiles.com	223
+259	Torbat-e Heydarieh Handcrafted Rugs	2019	www.torbateheydariehhandcraftedrugs.com	215
+260	Traditional Silk Textiles	2006	www.traditionalsilktextiles.com	97
+261	Tribal Wanderer Weaves	2005	www.tribalwandererweaves.com	224
+262	Tribe Clan Artisanal Rugs	2017	www.tribeclanartisanalrugs.com	167
+263	Tribe Clan Klassic Weaves	2006	www.tribeclanklassicweaves.com	225
+264	Tribe Clan Masterful Weaves	2011	www.tribeclanmasterfulweaves.com	226
+265	Tribe Clan Quality Rugs	2012	www.tribeclanqualityrugs.com	227
+266	Tribe Clan Silk Splendor	1875	www.tribeclansilksplendor.com	228
+267	Tribe Dynasty Great Weaves	2010	www.tribedynastygreatweaves.com	229
+268	Tribe Dynasty Masterful Rugs	2010	www.tribedynastymasterfulrugs.com	230
+269	Tribe Dynasty Quality Weaves	2019	www.tribedynastyqualityweaves.com	231
+270	Tribe Dynasty Superior Weaves	2013	www.tribedynastysuperiorweaves.com	232
+271	Tribe Kin Artisan Rugs	1903	www.tribekinartisanrugs.com	233
+272	Tribe Kin Artisanal Weaves	2017	www.tribekinartisanalweaves.com	234
+273	Tribe Kin Heritage Handmade Rugs	2013	www.tribekinheritagehandmaderugs.com	235
+274	Tribe Kin Tradition Carpets	2013	www.tribekintraditioncarpets.com	65
+275	Tribe Kin Velvety Carpets	2012	www.tribekinvelvetycarpets.com	236
+276	Tribe Wanderer Weaves	2019	www.tribewandererweaves.com	237
+277	Unique Silk Textiles	2018	www.uniquesilktextiles.com	238
+278	Urmia Silk Dynasty	2015	www.urmiasilkdynasty.com	239
+279	Urmia Silk Treasures	2009	www.urmiasilktreasures.com	240
+280	Urmia Unique Textiles	1885	www.urmiauniquetextiles.com	241
+281	Urmia Wool Creations	2016	www.urmiawoolcreations.com	242
+282	Varamin Velvety Carpets	2018	www.varaminvelvetycarpets.com	243
+283	Velvety Luxe Carpets	2013	www.velvetyluxecarpets.com	157
+284	Wanderer Dynasty Rugs	1040	www.wandererdynastyrugs.com	244
+285	Wandering Clan Artistic Rugs	2016	www.wanderingclanartisticrugs.com	138
+286	Yazd Artisan Carpets	2017	www.yazdartisancarpets.com	245
+287	Yazd Family Weavers	2020	www.yazdfamilyweavers.com	246
+288	Yazd Silk Masters	2009	www.yazdsilkmasters.com	247
+289	Yazd Traditional Rugs Ltd.	2012	www.yazdtraditionalrugs.com	248
+290	Yazd Yarn & Looms Factory	2017	www.yazdyarnlooms.com	10
+291	Zabol Zestful Weaves	2015	www.zabolzestfulweaves.com	249
+292	Zahedan Artisan Carpets	1888	www.zahedanartisancarpets.com	250
+293	Zahedan Silk Elegance	2014	www.zahedansilkelegance.com	251
+294	Zahedan Silk Treasures	2015	www.zahedansilktreasures.com	252
+295	Zahedan Zephyr Carpets	2021	www.zahedanzephyrcarpets.com	203
+296	Zanjan Wool Artisans	2013	www.zanjanwoolartisans.com	253
+297	Zanjan Wool Excellence	2014	www.zanjanwoolexcellence.com	46
+298	Zanjan Zesty Carpets	2019	www.zanjanzestycarpets.com	254
+\.
+
+
+--
+-- Data for Name: locations; Type: TABLE DATA; Schema: public
+--
+
+COPY public.locations (id, province, county, district, rural_district, city, village) FROM stdin;
+2	East Azerbaijan	Mianeh	Central	\N	Akhtachi	\N
+3	Mazandaran	Babol	Central	\N	Babol 1	\N
+4	Ilam	 Chardavol	 Zagros	 Bejnond	 	Pahneh Bar
+5	Gilan	Rudsar	Central	\N	Rudsar	\N
+6	East Azerbaijan	Kaleybar	Abesh Ahmad	Abesh Ahmad	\N	Khoobyarloo
+7	Fars	 Darab	 Central	 Heshivar	 	Dasht Band
+8	Fars	 Darab	 Central	 Heshivar	 	Abolqasem Sarfaraz Farm
+9	Mazandaran	Babolsar	Roudbast	\N	Hadi Shahr	\N
+10	Mazandaran	Nur	Central	\N	Nur	\N
+11	Mazandaran	Nur	Central	\N	Ruyan	\N
+12	East Azerbaijan	Malekan	Central	Western Gavdol	\N	Tazeh Kandkand
+13	Mazandaran	Babol	Central	\N	Babol	\N
+14	Ilam	 Ilam	 Chavar	 Boli	 	Ganjavan
+15	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Ab Chandaran-e Aliaghalal
+16	Ilam	 Chardavol	 Zagros	 Bejnond	 	Jub Shalhe
+17	Fars	 Darab	 Forug	 Forug	 	Shah Marz (Sadeh)
+18	Gilan	Talesh	Asalem	\N	Asalem	\N
+19	Isfahan	 Fereydun	 Zenderud	 Varzagh	 	Jooi Nav
+20	Isfahan	 Fereydun	 Zenderud	 Varzagh	 	Daran Power Plant
+21	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Alvarlu
+22	Markazi	Saveh	Central	\N	Saveh	\N
+23	Mazandaran	Abbasabad	Salman Shahr	\N	Salman Shahr	\N
+24	Markazi	Arak	Sarouq	\N	Sarouq	\N
+25	Fars	 Darab	 Central	 Heshivar	 	Ibrahim Shrine
+26	Fars	 Darab	 Central	 Heshivar	 	Khangab
+27	Mazandaran	Babol	Babol Kenar	\N	Marzikola	\N
+28	Fars	 Darab	 Forug	 Forug	 	Sheikh Dorzi
+29	Semnan	 Damghan	 Amireh Abad	 Qahab Rostaq	 	Kolateh Jafar
+30	Mazandaran	Mahmoudabad	Sarkhroud	\N	Sarkhroud	\N
+31	Ilam	 Ilam	 Chavar	 Boli	 	Shirin Ab
+32	Gilan	Talesh	Haviq	\N	Chobar	\N
+33	Fars	 Darab	 Forug	 Forug	 	Shahrak Shahid Rajaei
+34	Semnan	 Damghan	 Amireh Abad	 Qahab Rostaq	 	Kushahi
+35	Gilan	Rasht	Central	\N	Rasht 3	\N
+36	Semnan	 Damghan	 Amireh Abad	 Qahab Rostaq	 	Kolateh Haj Ali
+37	Ilam	 Chardavol	 Zagros	 Bejnond	 	Niduleh Sofla
+38	Isfahan	 Fereydun	 Zenderud	 Qarah Bishah	 	Chahel Khaneh
+39	Fars	 Darab	 Central	 Heshivar	 	Siyahān
+40	Fars	 Darab	 Forug	 Forug	 	Mozaffarabad
+41	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Istgah-e Rah Ahan Raj'in
+42	Isfahan	 Fereydun	 Zenderud	 Qarah Bishah	 	Azoon Bolagh
+43	Semnan	 Damghan	 Amireh Abad	 Qahab Rostaq	 	Kolateh Raba'i
+44	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Ashkafteh Sofla-e Ghalal
+45	East Azerbaijan	Heris	Central	\N	Heris	\N
+46	Mazandaran	Fereydunkenar	Central	\N	Fereydunkenar	\N
+47	Fars	 Darab	 Central	 Heshivar	 	Hemmati Pump
+48	Mazandaran	Nur	Baladeh	\N	Baladeh	\N
+49	Mazandaran	Nowshahr	Central	\N	Nowshahr	\N
+50	Fars	 Darab	 Forug	 Forug	 	Kahnooieh
+51	Fars	 Darab	 Central	 Heshivar	 	Dangan
+52	Zanjan	 Zanjan	 Zanjanrood	 Chaypareh Bala	 	Eilan
+53	Ilam	 Ilam	 Chavar	 Boli	 	Sarcham Lou
+54	East Azerbaijan	Tabriz	Central	\N	Tabriz 1	\N
+55	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Istgah-e Rah Ahan Sir Cham
+56	Fars	 Darab	 Central	 Heshivar	 	Kenar Hajji Shakari
+57	Fars	 Darab	 Forug	 Forug	 	Fasarood
+58	Fars	 Darab	 Forug	 Forug	 	Malekabad
+59	Markazi	Saveh	Nobaran	\N	Nobaran	\N
+60	Isfahan	 Fereydun	 Zenderud	 Qarah Bishah	 	Katavan
+61	Mazandaran	Sari	Central	\N	Sari	\N
+62	Gilan	Rudbar	Rahmatabad	\N	Tutkabon	\N
+63	Ilam	 Ilam	 Chavar	 Boli	 	Gereh Chaqa
+64	Ilam	 Chardavol	 Zagros	 Bejnond	 	Balaaveh Khoske
+65	Fars	 Darab	 Forug	 Forug	 	Hojjat Abad Kashe Rood
+66	Gilan	Rudbar	Central	\N	Manjil	\N
+67	East Azerbaijan	Tabriz	Central	\N	Tabriz 10	\N
+68	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Chavor
+69	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Ashkafteh Olya-e Ghalal
+70	Gilan	Rasht	Khomam	\N	Khomam 2	\N
+71	Ilam	 Ilam	 Chavar	 Boli	 	Mirmakan
+72	East Azerbaijan	Osku	Ilkhchi	\N	Ilkhchi	\N
+73	East Azerbaijan	Tabriz	Central	\N	Tabriz 6	\N
+74	Mazandaran	Nowshahr	Kajour	\N	Kajour	\N
+75	Kohgiluyeh and Boyer-Ahmad	 Choram	 Central	 Alghuchin	 	Amir Shahriar
+76	East Azerbaijan	Osku	Ilkhchi	South Shorkat	\N	Khas Abad / Khasban/
+77	Ilam	 Ilam	 Chavar	 Boli	 	Chaman-e Seyyed Mohammad
+78	Fars	 Darab	 Forug	 Forug	 	Nasirabad
+79	Markazi	Saveh	Central	\N	Saveh 2	\N
+80	Ilam	 Ilam	 Chavar	 Boli	 	Pasegahe Marzi Mimek
+81	Mazandaran	Sari	Central	\N	Sari 2	\N
+82	Ilam	 Chardavol	 Zagros	 Bejnond	 	Chamcheroodeh
+83	Fars	 Darab	 Forug	 Forug	 	Korkedoon
+84	East Azerbaijan	Malekan	Central	Western Gavdol	\N	Malek
+85	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Tenk Alak
+86	Ilam	 Chardavol	 Zagros	 Bejnond	 	Chaghasb
+87	Zanjan	 Zanjan	 Zanjanrood	 Chaypareh Bala	 	Gug Tapeh
+88	Isfahan	 Fereydun	 Zenderud	 Varzagh	 	Dehq
+89	Mazandaran	Amol	Central	\N	Amol	\N
+90	East Azerbaijan	Ajabshir	Central	Khazarlu	\N	Nansa
+91	Markazi	Arak	Central	\N	Kharaghan	\N
+92	Fars	 Darab	 Forug	 Forug	 	Abgarm
+93	Semnan	 Damghan	 Amireh Abad	 Qahab Rostaq	 	Kolateh Tangeh/Tangeh
+94	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Belugh
+95	East Azerbaijan	Mianeh	Kandovan	\N	Tark	\N
+96	Markazi	Tafresh	Central	\N	Kaboudrahang	\N
+97	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Benaroshehdeh Ali
+98	Semnan	 Damghan	 Amireh Abad	 Qahab Rostaq	 	Kolateh Sultan Hasan
+99	Isfahan	 Fereydun	 Zenderud	 Qarah Bishah	 	Gouhehak
+100	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Baghalujo Agha
+101	Isfahan	 Fereydun	 Zenderud	 Qarah Bishah	 	Nahr Khalaj
+102	Mazandaran	Babol	Central	\N	Amirkola	\N
+103	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Almalu
+104	East Azerbaijan	Sarab	Mehraban	\N	Mehraban	\N
+105	Markazi	Arak	Masoumiyeh	\N	Karchan	\N
+106	Gilan	Rezvanshahr	Pareh Sar	\N	Pareh Sar	\N
+107	Markazi	Arak	Central	\N	Arak 1	\N
+108	Gilan	Rasht	Lashtnesha	\N	Lashtnesha	\N
+109	Ilam	 Chardavol	 Zagros	 Bejnond	 	Helt
+110	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Abdarosheh Chin
+111	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Ozhae-e Ghalal
+112	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Poozeh Bolbolan
+113	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Cheshmeh-e Pooti-e Lah Farakh
+114	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Hamamlu Bala
+115	Fars	 Darab	 Forug	 Forug	 	Ghal'e Now
+116	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	\N
+117	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Talakab
+118	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Bahareh Maleh Namdaran-e Avaz
+119	Ilam	 Ilam	 Chavar	 Boli	 	Kabootar Kena
+120	Mazandaran	Chalus	Kelardasht	\N	Hasankif	\N
+121	Gilan	Langarud	Central	\N	Langarud 2	\N
+122	Markazi	Arak	Central	\N	Arak 3	\N
+123	Mazandaran	Babol	Bandpey West	\N	Khosh Roudpey	\N
+124	Fars	 Darab	 Forug	 Forug	 	Nasrat (Nasrat Abad)
+125	Ilam	 Ilam	 Chavar	 Boli	 	Dartoot
+126	Fars	 Darab	 Forug	 Forug	 	Asiab
+127	Isfahan	 Fereydun	 Zenderud	 Varzagh	 	Pach Agha
+128	Isfahan	 Fereydun	 Zenderud	 Varzagh	 	Aq Bolagh
+129	Ilam	 Ilam	 Chavar	 Boli	 	Sar Peytak
+130	Gilan	Rasht	Khomam	\N	Khomam	\N
+131	Markazi	Khomein	Central	\N	Khomein	\N
+132	East Azerbaijan	Kaleybar	Abesh Ahmad	Abesh Ahmad	\N	Verjan
+133	Isfahan	 Fereydun	 Zenderud	 Qarah Bishah	 	Ganjeh
+134	Mazandaran	Abbasabad	Central	\N	Abbasabad	\N
+135	East Azerbaijan	Osku	Ilkhchi	South Shorkat	\N	Kordlar
+136	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Chal-e Shahin Khodabakhsh
+137	Fars	 Darab	 Central	 Heshivar	 	Abshib
+138	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Cheshmeh-e Jafteh Tang Alak
+139	Gilan	Rudsar	Kelachay	\N	Kelachay	\N
+140	Ilam	 Chardavol	 Zagros	 Bejnond	 	Balaaveh Tarreh Olya
+141	Ilam	 Ilam	 Chavar	 Boli	 	Rizehvand
+142	Isfahan	 Fereydun	 Zenderud	 Qarah Bishah	 	Hesoor
+143	Mazandaran	Savadkouh North	Central	\N	Shirgah	\N
+144	Zanjan	 Zanjan	 Zanjanrood	 Chaypareh Bala	 	Chorook Olya
+145	East Azerbaijan	Marand	Central	\N	Bonab Marand	\N
+146	Ilam	 Ilam	 Chavar	 Boli	 	Kamaneh Kabood
+147	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Chal-e Siyah-e Ghalal
+148	Fars	 Darab	 Central	 Heshivar	 	Garmkan
+149	Gilan	Talesh	Haviq	\N	Haviq	\N
+150	Mazandaran	Tonekabon	Central	\N	Tonekabon 1	\N
+151	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Baraftab-e Aliaghalal
+152	Fars	 Darab	 Forug	 Forug	 	Malek Ebrahimi
+153	Isfahan	 Fereydun	 Zenderud	 Qarah Bishah	 	\N
+154	Semnan	 Damghan	 Amireh Abad	 Qahab Rostaq	 	Mazrae-e Klarasham
+155	Mazandaran	Behshahr	Central	\N	Rostamkola	\N
+156	Ilam	 Ilam	 Chavar	 Boli	 	Qiblah
+157	Isfahan	 Fereydun	 Zenderud	 Qarah Bishah	 	Badjan
+158	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Idehlu
+159	Gilan	Soumaeh Sara	Central	\N	Soumaeh Sara 2	\N
+160	Gilan	Rasht	Central	\N	Rasht 4	\N
+161	Gilan	Rasht	Khomam	\N	Khomam 1	\N
+162	East Azerbaijan	Maragheh	Serajou	\N	Khodajou (Khrajou)	\N
+163	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Baghalujo Sardar
+164	Ilam	 Chardavol	 Zagros	 Bejnond	 	Jub Sarkh Sofla
+165	Gilan	Langarud	Koumleh	\N	Koumleh	\N
+166	Gilan	Astaneh-ye Ashrafiyeh	Central	\N	Astaneh-ye Ashrafiyeh	\N
+167	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Hamamlu Payin
+168	East Azerbaijan	Kaleybar	Abesh Ahmad	Abesh Ahmad	\N	Zarbil
+169	Gilan	Rasht	Central	\N	Rasht 5	\N
+170	Gilan	Rasht	Kheshkebijar	\N	Kheshkebijar	\N
+171	Gilan	Lahijan	Central	\N	Lahijan 2	\N
+172	Fars	 Darab	 Forug	 Forug	 	Mohammadabad
+173	Ilam	 Ilam	 Chavar	 Boli	 	Sar Tang Bijar
+174	East Azerbaijan	Malekan	Central	Western Gavdol	\N	Majidabad
+175	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Baraftab-e Tahliyun
+176	Semnan	 Damghan	 Amireh Abad	 Qahab Rostaq	 	Kolu
+177	Gilan	Langarud	Central	\N	Langarud	\N
+178	Mazandaran	Fereydunkenar	Central	\N	Fereydunkenar 1	\N
+179	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Khiyarkal
+180	Fars	 Darab	 Forug	 Forug	 	Tahouna (Karkarieh)
+181	Mazandaran	Babol	Bandpey East	\N	Golougah	\N
+182	East Azerbaijan	Shabestar	Central	\N	Shandabad	\N
+183	Gilan	Rasht	Central	\N	Rasht 2	\N
+184	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Esfanaj
+185	Isfahan	 Fereydun	 Zenderud	 Qarah Bishah	 	Khalaj
+186	East Azerbaijan	Varzeghan	Central	\N	Varzeghan	\N
+187	East Azerbaijan	Osku	Ilkhchi	South Shorkat	\N	Khasehlar / Khasil /
+188	Isfahan	 Fereydun	 Zenderud	 Varzagh	 	Houshang Karimi Poultry Farm
+189	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Pataveh Ghalal
+190	Ilam	 Ilam	 Chavar	 Boli	 	Sarcham Deh Arun
+191	Mazandaran	Sari	Chehardange	\N	Kiasar	\N
+192	Kohgiluyeh and Boyer-Ahmad	 Choram	 Central	 Alghuchin	 	Barm-e Marghabi
+193	Isfahan	 Fereydun	 Zenderud	 Varzagh	 	Ghoojdanak
+194	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Talmbe Khaneye Idehlu
+195	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Istgah-e Rah Ahan Azar Pey
+196	Kohgiluyeh and Boyer-Ahmad	 Choram	 Central	 Alghuchin	 	Alghuchin Olya
+197	East Azerbaijan	Heris	Central	\N	Zarnagh	\N
+198	Fars	 Darab	 Forug	 Forug	 	Seydabad
+199	Isfahan	 Fereydun	 Zenderud	 Varzagh	 	Ghozaay
+200	Gilan	Rudbar	Amarlu	\N	Jirandeh	\N
+201	Markazi	Zarandieh	Central	\N	Mamuniyeh	\N
+202	Ilam	 Chardavol	 Zagros	 Bejnond	 	Jub Bor
+203	Gilan	Amlash	Central	\N	Amlash	\N
+204	Mazandaran	Sari	Dodangeh	\N	Farim	\N
+205	Ilam	 Chardavol	 Zagros	 Bejnond	 	Niduleh Olya
+206	East Azerbaijan	Kaleybar	Abesh Ahmad	Abesh Ahmad	\N	Dalavaran (Dil Belmez)
+207	Fars	 Darab	 Central	 Heshivar	 	Maryan
+208	Semnan	 Damghan	 Amireh Abad	 Qahab Rostaq	 	Kolateh Sinehband
+209	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Bash Siz
+210	Gilan	Siahkal	Central	\N	Siahkal	\N
+211	Zanjan	 Zanjan	 Zanjanrood	 Chaypareh Bala	 	Goglar
+212	Markazi	Delijan	Central	\N	Delijan	\N
+213	Gilan	Astara	Lavandevil	\N	Lavandevil	\N
+214	Gilan	Soumaeh Sara	Central	\N	Soumaeh Sara	\N
+215	Gilan	Lahijan	Central	\N	Lahijan 1	\N
+216	Semnan	 Damghan	 Amireh Abad	 Qahab Rostaq	 	Kolateh Haj Sadegh
+217	Markazi	Tafresh	Central	\N	Tafresh	\N
+218	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Istgah-e Rah Ahan Nik Pey
+219	Fars	 Darab	 Central	 Heshivar	 	Dehpa Castle
+220	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Tang Kelajiki-e Tahliyun
+221	Mazandaran	Chalus	Marzanabad	\N	Marzanabad	\N
+222	Gilan	Talesh	Central	\N	Talesh	\N
+223	Mazandaran	Mahmoudabad	Central	\N	Mahmoudabad	\N
+224	Markazi	Saveh	Central	\N	Aveh	\N
+225	East Azerbaijan	Heris	Khajeh	\N	Khajeh	\N
+226	East Azerbaijan	Bostanabad	Central	\N	Bostanabad	\N
+227	East Azerbaijan	Malekan	Central	Western Gavdol	\N	Tazeh Ghaleh
+228	Fars	 Darab	 Forug	 Forug	 	Shahrak Malekabad
+229	Semnan	 Damghan	 Amireh Abad	 Qahab Rostaq	 	Ali Khan/Ali Khvah
+230	Ilam	 Ilam	 Chavar	 Boli	 	Golal Shahid
+231	Mazandaran	Neka	Central	\N	Neka	\N
+232	Gilan	Langarud	Otagur	\N	Otagur	\N
+233	East Azerbaijan	Kaleybar	Abesh Ahmad	Abesh Ahmad	\N	Chanagh
+234	East Azerbaijan	Kaleybar	Abesh Ahmad	Abesh Ahmad	\N	Sheikhl...
+235	East Azerbaijan	Tabriz	Central	\N	Tabriz 4	\N
+236	Gilan	Amlash	Central	\N	Amlash 2	\N
+237	East Azerbaijan	Kaleybar	Central	\N	Kaleybar	\N
+238	East Azerbaijan	Mianeh	Central	\N	Achachi	\N
+239	Fars	 Darab	 Central	 Heshivar	 	Jihad Agriculture Darab Poultry Farm
+240	East Azerbaijan	Malekan	Central	Western Gavdol	\N	Bakhshali
+241	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Poozeh Tizab-e Safar
+242	Markazi	Saveh	Nobaran	\N	Gharqabad	\N
+243	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Tang Zard-e Ghalal
+244	Ilam	 Ilam	 Chavar	 Boli	 	Varehal Cheshmeh-ye Ramazan
+245	Ilam	 Chardavol	 Zagros	 Bejnond	 	Cham Poosh
+246	East Azerbaijan	Azarshahr	Central	\N	Azarshahr	\N
+247	Fars	 Darab	 Forug	 Forug	 	Shah Abuzakria
+248	Fars	 Darab	 Forug	 Forug	 	Kaseh Rood
+249	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Tang Nakmi
+250	Zanjan	 Zanjan	 Zanjanrood	 Zanjanrood Payin	 	Tazeh Kand
+251	Kohgiluyeh and Boyer-Ahmad	 Boyer-Ahmad	 Loudab	 Chin	 	Tahliyun
+252	East Azerbaijan	Shabestar	Central	\N	Shabestar	\N
+253	East Azerbaijan	Tabriz	Central	\N	Basmenj	\N
+254	East Azerbaijan	Maragheh	Central	\N	Maragheh 1	\N
+\.
+
+
+--
+-- Data for Name: materials; Type: TABLE DATA; Schema: public
+--
+
+COPY public.materials (id, itype, name) FROM stdin;
+124	pile	Texel Wool
+125	pile	Twill Silk
+126	pile	Turkish Cashmere
+127	pile	Nepali Cashmere
+128	warp	Saxon Merino Wool
+129	weft	Manx Loaghtan Wool
+130	weft	Wool-Polyester-Cashmere Blend
+131	weft	Maheshwari Silk
+132	pile	Velvet Silk
+133	pile	Italian Cashmere
+134	warp	Jacquard Cashmere
+135	warp	Extra-Long Staple Cotton
+136	warp	Kora Silk
+137	weft	Wool-Polyester-Acrylic Blend
+138	weft	Hybrid Cotton
+139	weft	Silk-Cashmere-Polyester-Wool Blend
+140	weft	Silk-Polyester-Cashmere-Viscose-Wool Blend
+141	weft	Short Staple Cotton
+142	weft	Ribbed Cashmere
+143	pile	Gotland Wool
+144	pile	Jamdani Silk
+145	pile	Matka Silk
+146	pile	New Zealand Cashmere
+147	pile	Doupion Silk
+148	weft	Lambswool
+149	weft	Cotton-Polyester-Neoprene Blend
+150	warp	Silk-Polyester-Nylon Blend
+151	pile	Rajshahi Silk
+152	pile	Cotton-Polyester-Modal-Tencel Blend
+153	pile	Intarsia Cashmere
+154	pile	Merino Wool
+155	warp	Worsted Cashmere
+156	warp	Pima Cotton
+157	weft	Cotswold Wool
+158	weft	Welsh Mountain Wool
+159	weft	Organic Cotton
+160	pile	Cotton-Polyester-Soya Blend
+161	weft	Luxury Cashmere (High-end Designer Cashmere)
+162	weft	Silk-Polyester-Linen Blend
+163	pile	Qiviut Wool
+164	weft	Silk-Polyester-Acrylic Blend
+165	weft	Cotton-Polyester-Acrylic-Polypropylene Blend
+166	weft	Cotton-Polyester-Acetate Blend
+167	pile	Khadi Silk
+168	warp	Cashmere Blend with Camel Hair
+169	pile	Cultural Silk
+170	pile	Cotton-Polyester-Rayon-Nylon Blend
+171	pile	Dartmoor Wool
+172	pile	Wool-Acrylic Blend
+173	warp	Mysore Silk
+174	warp	Arani Silk
+175	warp	Damask Silk
+176	pile	Wool-Rayon Blend
+177	pile	Single-Ply Cashmere
+178	pile	Finnsheep Wool
+179	pile	Gazar Silk
+180	pile	Cashmere Blend with Modal
+181	pile	Leicester Longwool
+182	pile	Cotton-Polyester-Nylon-Polyurethane Blend
+183	weft	Garad Silk
+184	weft	Banarasi Silk
+185	weft	Cheviot Wool
+186	weft	Wool-Acrylic-Polyester Blend
+187	pile	Scottish Blackface Wool
+188	pile	Cotton-Nylon-Polyester Blend
+189	weft	Silk-Cashmere-Polyester-Wool-Acrylic Blend
+190	kilim	South African Wool
+191	pile	Moire Silk
+192	pile	Hebridean Wool
+193	weft	Bourette Silk
+194	weft	Wool-Polyester-Rayon Blend
+195	weft	Kerry Hill Wool
+196	weft	Shetland Islands Wool
+197	weft	Tunis Wool
+198	weft	Mongolian Cashmere
+199	weft	Soft-Twist Cashmere
+200	pile	Cashmere Blend with Wool
+201	pile	Cotton-Acrylic Blend
+202	weft	Wool-Spandex Blend
+203	weft	Cotton-Polyester-Viscose Blend
+204	weft	Habotai Silk
+205	pile	Zwartbles Wool
+206	pile	Kota Silk
+207	pile	Debouillet Wool
+208	pile	Spider Silk
+209	weft	Cashmere Blend with Mohair
+210	weft	Paithani Silk
+211	pile	Anaphe Silk
+212	pile	Baby Cashmere
+213	weft	Iranian Cashmere (Pashmina)
+214	pile	Wool-Polyester-Spandex Blend
+215	weft	Silk-Polyester-Viscose Blend
+216	weft	Conventional Cotton
+217	weft	Silk-Polyester-Cashmere-Wool Blend
+218	weft	Mashru Silk
+219	weft	Silk-Cashmere-Polyester-Wool-Viscose Blend
+220	weft	Mushroo Silk
+221	warp	Muga Silk
+222	warp	Perendale Wool
+223	warp	Coan Silk
+224	weft	Duchess Satin Silk
+225	pile	Polwarth Wool
+226	pile	Noil Silk
+227	weft	Jamawar Silk
+228	pile	Silk-Polyester-Cashmere Blend
+229	warp	Wool-Polypropylene Blend
+230	warp	Groswarp Silk
+231	weft	Cotton-Polyester-Lyocell Blend
+232	warp	Mulberry Silk
+233	warp	Three-Ply Cashmere
+234	weft	Shetland Wool
+235	warp	Silk-Polyester-Rayon Blend
+236	warp	Cotton-Polyethylene Blend
+237	warp	North Iran Cottons
+238	warp	Cotton-Polyester-Wool Blend
+239	weft	Silk-Polyester-Cashmere-Viscose-Wool-Acrylic Blend
+240	warp	Columbia Wool
+241	warp	Silk-Cashmere-Polyester-Viscose-Wool Blend
+242	warp	Icelandic Wool
+243	warp	Medium Staple Cotton
+244	pile	Silk-Polyester-Cashmere-Acrylic Blend
+245	warp	Brushed Cashmere
+246	warp	Silk-Polyester-Cupro Blend
+247	weft	Raw Silk
+248	weft	Double-Ply Cashmere
+249	weft	Romeldale Wool
+250	weft	Silk-Polyester-Bamboo Blend
+251	pile	Silk-Cashmere Blend
+252	pile	Silk-Polyester-Cashmere-Viscose Blend
+253	warp	Targhee Wool
+254	pile	Ikat Silk
+255	weft	Silk-Polyester-Wool-Cashmere Blend
+256	weft	Acala Cotton
+257	pile	Cotton-Polyester-Rayon Blend
+258	weft	Cotton-Polyester-Bemberg Blend
+259	weft	Supima Cotton
+260	weft	Georgette Silk
+261	weft	Cotton-Polyester-PEVA Blend
+262	weft	Baluchari Silk
+263	pile	Cotton-Polyester-Viscose-Rayon Blend
+264	weft	Silk-Polyester-Cashmere-Wool-Viscose-Acrylic Blend
+265	weft	Wool-Polyester-Cotton Blend
+266	weft	Sea Island Cotton
+267	pile	Boer Goat Wool
+268	warp	Satin Silk
+269	warp	Cotton-Nylon Blend
+270	warp	Rain-Fed Cotton
+271	pile	Jersey Cashmere
+272	warp	Wool-Acetate Blend
+273	weft	Moirangphee Silk
+274	weft	Cotton-Polyester-Acrylic-Wool Blend
+275	warp	Ottoman Silk
+276	warp	Cotton Acrylic Blend
+277	pile	Cotton-Polyester-Bamboo Blend
+278	warp	Silk-Cashmere-Polyester Blend
+279	weft	Romney Wool
+280	weft	Genetically Modified Cotton
+281	weft	Chiffon Silk
+282	weft	Silk-Cashmere-Polyester-Viscose-Acrylic Blend
+283	pile	Cashmere Blend with Yak Wool
+284	pile	Cotton-Polyester-Cupro Blend
+285	weft	Wool-Nylon Blend
+286	weft	Afghan Cashmere
+287	pile	Cotton-Polyester-Spandex Blend
+288	pile	Southdown Wool
+289	weft	Angora Wool
+290	pile	New Zealand Merino Wool
+291	warp	Cotton-Polyester-Lycra Blend
+292	weft	Silk-Cashmere-Polyester-Viscose Blend
+293	weft	Wool-Polyester Blend
+294	weft	Teeswater Wool
+295	weft	Organza Silk
+296	weft	Lincoln Wool
+297	pile	Momme Silk
+298	pile	Silk-Polyester-Cashmere-Wool-Viscose-Lycra Blend
+299	pile	Cotton-Polyester Blend
+300	pile	Four-Ply Cashmere
+301	pile	Fagara Silk
+302	weft	Cashmere-Silk-Polyester Blend
+303	weft	Exmoor Horn Wool
+304	pile	Kosa Silk
+305	weft	Coopworth Wool
+306	weft	Cotton-Polyester-Seacell Blend
+307	weft	Cotton-Spandex Blend
+308	weft	Cotton-Rayon Blend
+309	warp	Hard-Twist Cashmere
+310	kilim	LamŽ Silk
+311	weft	Cotton-Polyester-Plastic Blend
+312	weft	Cotton-Polyester-Linen-Silk Blend
+313	pile	Ahimsa Silk
+314	weft	Kyrgyzstan Cashmere
+315	weft	Cotton-Polyester-Cotton Blend
+316	weft	Wool-Polyurethane Blend
+317	weft	Silk-Polyester-Seacell Blend
+318	weft	Patola Silk
+319	weft	Shantung Silk
+320	weft	Organic Cashmere
+321	pile	Suffolk Wool
+322	weft	Australian Cashmere
+323	weft	Harris Tweed Wool
+324	weft	Cotton-PVC Blend
+325	pile	Cotton-Polyester-Lurex Blend
+326	weft	Silk-Polyester-Lyocell Blend
+327	weft	Alpaca Wool
+328	pile	Cotton-Polyester-Hemp Blend
+329	warp	Cotton-Polyester-Acrylic Blend
+330	warp	Shropshire Wool
+331	pile	Balwen Welsh Mountain Wool
+332	warp	Mohair Wool
+333	warp	Cashmere Blend with Alpaca
+334	warp	Carded Cashmere
+335	warp	Silk-Polyester-Bemberg Blend
+336	weft	Bhagalpuri Silk
+337	weft	Gulf Coast Native Wool
+338	pile	Black Welsh Mountain Wool
+339	pile	Irrigated Cotton
+340	pile	Cotton-Polyester-Viscose-Spandex Blend
+341	pile	Foulard Silk
+342	pile	Cotton Polyester Blend
+343	warp	Jacob Wool
+344	warp	Pochampally Silk
+345	pile	Cotton-Polyurethane Blend
+346	pile	Herdwick Wool
+347	pile	Silk-Polyester-Cashmere-Viscose-Acrylic Blend
+348	weft	Stansborough Grey Wool
+349	pile	Silk-Polyester-Hemp Blend
+350	weft	Cotton-Polypropylene Blend
+351	weft	Tsigai Wool
+352	kilim	Cashmere Wool
+353	weft	Silk-Polyester-Soya Blend
+354	weft	Cotton-Polyester-Modal Blend
+355	warp	Cashmere Blend with Angora
+356	warp	Silk-Polyester Blend
+357	weft	Inner Mongolian Cashmere
+358	weft	Chanderi Silk
+359	weft	Crepe de Chine Silk
+360	weft	Falkland Wool
+361	pile	Cotton-Polyester-Linen Blend
+362	pile	Swaledale Wool
+363	pile	Russian Cashmere
+364	warp	Brocade Silk
+365	warp	Cashmere Blend with Merino Wool
+366	pile	Churro Wool
+367	pile	Border Leicester Wool
+368	weft	Long Staple Cotton
+369	weft	Cashmere Blend with Silk
+370	kilim	Norwegian Wool
+371	pile	Lonk Wool
+372	weft	Eco-Friendly Cashmere
+373	warp	CVM Wool (California Variegated Mutant)
+374	warp	Cotton Bamboo Blend
+375	weft	Phulkari Silk
+376	weft	Wool-Nylon-Polyester Blend
+377	weft	Uppada Silk
+378	weft	Polyester-Cashmere Blend
+379	weft	Polyester-Silk Blend
+380	weft	Wool-Blend Felt
+381	weft	Faille Silk
+382	weft	Tibetan Cashmere
+383	weft	Cashmere Blend with Linen
+384	weft	Silk-Cashmere-Polyester-Wool-Viscose-Acrylic Blend
+385	weft	Peau de Soie Silk
+386	warp	Colored Cotton
+387	weft	Silk-Polyester-Lycra Blend
+388	pile	Silk-Cashmere-Polyester-Viscose-Acrylic-Wool Blend
+389	weft	Lleyn Wool
+390	warp	Tanchoi Silk
+391	warp	Lightweight Cashmere
+392	warp	Karakul Wool
+393	weft	Sea Silk
+394	weft	Assam Silk
+395	warp	Chinese Cashmere
+396	warp	Bishnupuri Silk
+397	warp	Peruvian Cashmere
+398	pile	Kazakh Cashmere
+399	pile	Asiatic Cotton (Gossypium arboreum)
+400	weft	Silk-Cashmere-Polyester-Acrylic Blend
+401	weft	Masham Wool
+402	pile	Cotton-Polyester-Cashmere Blend
+403	pile	Tussar Silk
+404	pile	Fair Trade Cotton
+405	pile	Cotton-Acetate Blend
+406	warp	Corriedale Wool
+407	weft	Kanjeevaram Silk
+408	weft	Cashmere-Silk Blend
+409	pile	Cotton-Polyester-PVC Blend
+410	warp	Silk-Polyester-Wool Blend
+411	warp	MoirŽ Silk
+\.
+
+
+--
+-- Data for Name: rugs; Type: TABLE DATA; Schema: public
+--
+
+COPY public.rugs (id, name, year_crafted, style, knot_leng, knot_per_foot, rug_stop, size, notes, rating) FROM stdin;
+346	Ab Anbar Tang Tang Storage	2023	235	5.6	\N	faux	440	medallion 	8
+347	Ab Anjir-e Olya Rug	2020	236	10	80	leather	375	\N	8
+348	Ab Anjir-e Sofli Rug	2020	237	0	\N	leather	330	\N	1
+349	Ab Bareek Rug	2018	238	10.5	\N	faux	330	\N	8
+350	Ab Beid Anjir-e Siah Rug	2020	239	6.5	\N	faux	440	\N	7
+351	Ab Chenar Bidan Jir Rug	2021	240	7.5	\N	leather	355	\N	7
+352	Ab Deh Gah Rug	2021	241	7	\N	faux	440	natural colour	8
+353	Ab Ghanat Ashkafteh Dudar Rug	2020	241	6	65	leather	355	gol 	7
+354	Ab Hajat Chahar Bishkeh Rug	2020	242	10	85	faux	355	\N	9
+355	Ab Jirek Rug	2021	243	7.6	\N	faux	500	\N	8
+356	Ab Kenaro Rug	2022	244	8.5	\N	faux	440	\N	8
+357	Ab Kol Shisheh Rug	2022	245	7.4	\N	faux	500	\N	9
+358	Ab Kol Taveh Shisheh Rug	2020	246	10	\N	faux	440	\N	7
+359	Ab Mahi Rug	2020	247	11	\N	faux	440	\N	8
+360	Ab Sepeh Rug	2021	248	5.5	\N	leather	500	\N	7
+361	Ab Zani Rug	2014	238	10.9	\N	leather	375	\N	9
+362	Ab-e Ashamidan Tang Chenar Spring	2017	249	12	\N	leather	375	\N	8
+363	Abbas Qeshlaqi Nuri Kandi Rug	2019	250	5.5	40	leather	500	gol 	8
+364	Abbasabad Farm	2018	250	5.5	40	leather	500	rose design	8
+365	Abbasabad Rug	2018	250	6.5	40	leather	500	\N	8
+366	Abrahimabad Olya Va Sofla Rug	2020	251	6.8	40	faux	440	\N	8
+367	Abreezi Rug	2016	252	6.1	\N	leather	500	\N	8
+368	Achachi	2020	251	7.5	\N	faux	440	\N	7
+369	Achachi Ester Rug	2019	253	5.6	\N	leather	330	\N	9
+370	Achachi Esther Rug	2020	239	6.5	\N	faux	473	\N	7
+371	Achachi Roxana Rug	2022	235	5	\N	faux	375	\N	7
+372	Adreshak Rug	2023	241	7	\N	faux	500	\N	8
+373	Adroo Rug	2020	241	7.4	\N	faux	473	\N	8
+374	Afrian Olya Rug	2020	241	6.5	\N	faux	473	\N	8
+375	Afrian Sofla Rug	2019	254	5	\N	faux	375	\N	7
+376	Aghche Qeshlaq Rug	2020	241	6	\N	faux	440	natural colour	7
+377	Aghol Kangajak Siyah Rug	2023	255	6.8	\N	faux	375	\N	7
+378	Ahmad Abad Gorgonju Rug	2021	239	8	50	faux	375	\N	8
+379	Ahmad Gharib Rug	2023	246	13	\N	faux	500	\N	9
+380	Ahmadabad Gola Neh Rug	2023	256	8.8	\N	faux	440	\N	\N
+381	Ahmadabad Rug	2023	241	6.2	\N	faux	440	\N	\N
+382	Ahmadi Farm	2017	238	10	\N	leather	640	\N	7
+383	Ahmadvand	2022	241	7	\N	faux	440	\N	7
+384	Akbarabad Rug	2019	257	7.5	\N	faux	440	\N	8
+385	Akhkand Rug	2019	238	9.3	\N	leather	650	\N	6
+386	Akhoundbalagh Rug	2020	246	9.7	\N	faux	440	\N	8
+387	Akhoundpayin Rug	2019	251	7.2	\N	faux	440	\N	9
+388	Alakan Rug	2020	258	7.2	\N	faux	473	\N	8
+389	Ali Abad Kohodan Rug	2023	259	6.3	\N	faux	375	\N	\N
+390	Ali Kahrizi Rug	2020	260	7.4	\N	faux	330	\N	7
+391	Ali Moradi Rug	2022	241	7.1	\N	faux	440	\N	8
+392	Aliabad Dam Tang Rug	2021	256	8.2	\N	faux	568	\N	8
+393	Aliabad Doleh Rash Rug	2021	257	9	\N	faux	473	\N	7
+394	Aliabad Rug	2019	235	4.3	20	faux	375	\N	6
+395	Aliabad Sargodar Rug	2022	261	5.7	\N	faux	375	\N	7
+396	Aliabad Zare Rug	2022	243	7.2	\N	faux	500	\N	9
+397	Alodde Rug	2021	239	6.7	\N	faux	355	\N	7
+398	Amaratlu Ulya Rug	2021	262	5.1	\N	faux	355	\N	6
+399	Amir Gopi Rug	2021	241	7.2	\N	faux	473	\N	8
+400	Amirabad Rug	2023	263	8.1	\N	faux	440	\N	8
+401	Amol	2023	264	7	34	faux	440	\N	\N
+402	Amol Armin Rug	2023	265	8.5	\N	faux	375	\N	\N
+403	Amol Darius Rug	2022	266	8	\N	faux	440	\N	8
+404	Amol Darrius Rug	2020	266	7.6	\N	faux	500	\N	8
+405	Amol Jazmyne Rug	2019	246	10.2	\N	faux	473	\N	8
+406	Amol Roshan Rug	2020	264	6	\N	faux	375	\N	8
+407	Amol Roxana Rug	2020	236	11.7	50	faux	375	\N	8
+408	Amol Sitara Rug	2020	235	4.2	20	faux	375	\N	7
+409	Amol Yasmeen Rug	2021	236	12.9	\N	faux	440	\N	8
+410	Anar Rug	2023	236	12.3	15	faux	250	\N	8
+411	Anarstan Rug	2020	267	8.5	45	faux	473	\N	8
+412	Anbar-e Alufe Lishetr Kuchak Rug	2019	268	12.8	\N	faux	375	\N	8
+413	Anbargah Rug	2021	269	5.7	\N	faux	440	\N	9
+414	Andarsa Rug	2021	251	7.3	\N	faux	500	\N	8
+415	Andarun Bidan Jir Rug	2023	267	8	\N	faux	500	\N	8
+416	Anjir-e Siah Rug	2023	270	10.8	\N	faux	440	\N	\N
+417	Aq Bolagh Rug	2019	271	4.8	60	faux	330	\N	7
+418	Aqajari Rug	2013	272	7.7	\N	leather	354	\N	6
+419	Arak	2023	239	7	\N	faux	440	\N	8
+420	Arak Yasmine Rug	2021	243	7.5	\N	faux	500	\N	8
+421	Arbab Kandi Rug	2022	273	10	\N	faux	375	\N	8
+422	Ardeshkan Rug	2021	274	4.5	\N	faux	473	\N	6
+423	Ardoukhankandi Rug	2021	275	6	\N	faux	375	\N	8
+424	Ashgheft Rah Rug	2019	276	6.2	\N	faux	375	\N	6
+426	Ashkafteh Dudar Rug	2020	277	10	\N	faux	375	\N	8
+427	Ashkafteh Shah Sofla Rug	2022	278	10	\N	faux	500	\N	8
+428	Ashkafteh Siyah Rug	2020	236	9.6	90	leather	355	\N	8
+429	Ashkeft Gav-e Mishi Kooh-e Sorkh Rug	2021	279	7.5	\N	faux	375	\N	8
+430	Ashkeft Shiri Rug	2020	280	7	\N	faux	375	\N	8
+431	Asmatabad	2022	273	8	\N	faux	440	\N	8
+432	Asphalt Factory of Hrithash	2021	266	6.7	\N	faux	375	\N	7
+433	Asrabad Rug	2023	281	5.4	\N	faux	440	\N	\N
+434	Azamabad Rug	2019	251	6	\N	faux	440	\N	7
+435	Azizabad Rug	2021	272	13.2	100	faux	375	\N	8
+436	Baba Hajji Rug	2019	282	4.7	\N	leather	330	\N	7
+437	Babakrabad	2022	246	14.4	\N	faux	375	\N	8
+438	Babarar Rug	2021	246	14.6	\N	faux	375	\N	8
+439	Babiyan Rug	2018	246	12.7	\N	faux	330	\N	9
+440	Babol	2019	268	10	\N	faux	355	\N	7
+441	Babol Arman Rug	2020	246	8.5	50	faux	375	\N	8
+442	Babol Kenar	2021	246	10	\N	faux	440	\N	9
+443	Babol Kenar Daria Rug	2019	235	4.7	25	faux	375	\N	4
+444	Babol Kenar Mendel Rug	2022	283	7.3	\N	faux	473	\N	5
+445	Babol Kenar Roxey Rug	2023	246	9.8	\N	faux	375	\N	\N
+446	Babol Kenar Roxy Rug	2021	243	7.2	\N	faux	440	\N	8
+447	Babol Kenar Yasmeen Rug	2020	284	8.5	60	faux	330	\N	8
+448	Babol Kenar Zari Rug	2020	285	4.5	\N	faux	330	\N	6
+449	Babol Marzikola Daria Rug	2021	256	9	70	faux	473	\N	7
+450	Babol Marzikola Jaslynn Rug	2021	273	9.9	\N	faux	375	\N	8
+451	Babol Marzikola Jazlynn Rug	2020	241	6.5	\N	faux	250	\N	4
+452	Babol Marzikola Rug	2020	258	6.5	\N	faux	375	\N	8
+453	Babol Marzikola Zari Rug	2023	267	7.5	\N	faux	375	\N	\N
+454	Badamak Rug	2020	257	8.5	\N	faux	440	\N	8
+455	Badengan Olya Rug	2023	271	4.6	\N	faux	440	\N	7
+456	Badengan Sofli Rug	2022	257	9	\N	faux	375	\N	9
+457	Badkhun Basht Rug	2021	251	7.6	\N	faux	440	\N	8
+458	Bag Rug	2020	285	4.3	20	faux	275	\N	4
+459	Bagh Chaleh Rug	2020	252	7.3	\N	faux	355	\N	6
+460	Bagh Nargoon Sarak Rug	2016	246	14.5	\N	leather	473	\N	8
+461	Bahmiar Chek Bozeh Pa Rug	2023	246	12.5	\N	faux	440	\N	\N
+462	Bahram Beygi Ali Asmandi Rug	2021	286	8.5	\N	faux	440	\N	6
+463	Bajreh Rug	2017	287	6	18	leather	330	\N	7
+464	Bakleh Rug	2018	287	8.3	60	leather	355	\N	10
+465	Baklodon Shabiliz Rug	2019	241	6.5	50	faux	473	\N	8
+466	Balaban	2019	241	6.7	\N	faux	375	\N	7
+467	Banafti Rug	2022	257	8.5	\N	faux	375	\N	8
+468	Banehlar Rug	2022	246	10	\N	faux	500	\N	8
+469	Baraftab-e Jalaleh Rug	2020	261	5	\N	leather	330	\N	7
+470	Barayi Rug	2022	261	5	\N	faux	355	\N	7
+471	Bard Do Rah Picahab Rug	2020	288	8.1	\N	leather	750	\N	7
+472	Bardeh Gol (Rug)	2019	241	6.5	\N	faux	473	\N	7
+473	Bardeh Sefid Rug	2020	289	5	\N	leather	330	\N	1
+474	Bargoon Rug	2021	269	5.4	\N	faux	440	\N	7
+475	Bark Maran (Rug)	2023	290	6.7	\N	faux	500	\N	8
+476	Barkeh Rug	2020	256	8	\N	faux	440	\N	8
+477	Barm-e Siyah Rud-e Talkh Rug	2022	266	6.7	\N	faux	440	\N	8
+478	Barqaleh Rug	2020	241	4.2	38	faux	355	\N	6
+479	Basij Sahib Al-Zaman Training Garrison Meyriz	2019	252	6.5	\N	leather	650	\N	7
+480	Bazush Rug	2020	291	6	\N	faux	473	\N	8
+481	Beidasookhte Balagh Rug	2020	239	7.8	\N	faux	375	\N	7
+482	Beidasookhte Payin Rug	2021	289	4.6	\N	faux	375	\N	1
+483	Ben Zard Olya Rug	2023	243	7	\N	faux	500	\N	8
+484	Ben Zard Sofli Rug	2007	292	6.9	\N	leather	750	\N	6
+485	Benava Rug	2022	241	6.8	\N	faux	355	\N	7
+486	Beneh Kolou Mir Hossein Rug	2020	293	0	\N	faux	330	\N	1
+487	Benestan-e Sadat Mahmoudi Rug	2019	246	11.5	\N	faux	330	\N	7
+488	Biar Rug	2019	293	0	\N	leather	330	\N	4
+489	Biareh Rug	2020	241	7	\N	faux	355	\N	7
+490	Bidak Alia Rug	2022	284	9	\N	faux	440	\N	8
+491	Bidak Salar Rug	2020	239	6.3	30	faux	375	\N	8
+492	Bidak Sohrab Rug	2013	236	11	65	leather	640	\N	8
+493	Bigoon Bidak Rug	2022	294	8.9	\N	faux	440	\N	7
+494	Bijgan Rug	2021	295	10	\N	faux	375	\N	7
+495	Bojro Rug	2023	266	6.9	\N	faux	500	\N	8
+496	Bolucheh Rug	2022	261	6	25	faux	440	\N	8
+497	Bam Zadeh Qara Gol Rug	2022	259	6.3	\N	faux	440	\N	7
+498	Borabadi Rug	2020	259	7	\N	faux	470	\N	7
+499	Bosengan Rug	2020	252	5.8	69	faux	400	\N	7
+500	Bovaneh Rug	2022	251	7.8	\N	faux	500	\N	8
+501	Camp Fast Roller Dashtgaz Rug	2020	256	9	\N	faux	440	\N	8
+502	Central	2020	296	5.1	\N	faux	375	\N	7
+503	Central Darius Rug	2020	297	4.5	\N	faux	330	\N	7
+504	Chagheh Sorkh Bahram Beygi Rug	2020	239	6.2	\N	faux	375	\N	8
+505	Chah Abshar Paeen Rug	2022	267	8.3	20	faux	473	\N	8
+506	Chah Abshar Rug	2021	284	8.8	65	faux	375	\N	8
+507	Chah Aqa Seyyed Baji Rug	2023	246	10	\N	faux	375	\N	7
+508	Chah Bala Hatam Rug	2020	278	8.6	51	faux	473	\N	8
+509	Chah Baneh Rug	2022	252	6	35	faux	375	\N	6
+510	Chah Darreh Rug	2020	284	8.2	75	faux	568	\N	8
+511	Chah Daste Saraj Rug	2020	298	6.7	49	faux	400	\N	7
+512	Chah Dokan Pazirik Rug	2023	251	7.4	\N	faux	500	\N	8
+513	Chah Ghalimeh Rug	2023	236	11.4	\N	faux	500	\N	8
+514	Chah Ghasr Kand Rug	2020	259	5.5	\N	faux	440	\N	8
+515	Chah Ghormeh Rug	2022	251	7.6	\N	faux	473	\N	7
+516	Chah Golshahr Rug	2019	249	9.5	45	faux	440	\N	7
+517	Chah Imam Zaman Rug	2021	243	7.3	\N	faux	500	\N	8
+518	Chah Kalashi Mirabad Rug	2021	239	6.8	\N	faux	440	\N	8
+519	Chah Khak Bid Abad Rug	2021	251	6	\N	faux	473	\N	6
+520	Chah Khancheh Varzaqan Rug	2000	289	4.5	\N	leather	355	\N	1
+521	Chah Khoshkeh Roghan Nabati Rug	2020	239	6.8	\N	faux	473	\N	7
+522	Chah Naft Drilla Rug	2020	239	6.7	50	faux	473	\N	8
+523	Chah Sarab Meydan Rug	2019	257	8.1	\N	leather	330	\N	9
+524	Chah Shomare 1 Azan Rug	2020	299	5.8	35	faux	375	\N	7
+525	Chah Siah Dasht Rug	2022	243	7.6	\N	faux	500	\N	9
+526	Chah Zamin Astaneh Rug	2022	246	13.6	\N	faux	440	\N	9
+527	Chahar Bishkeh Olya Rug	2022	240	11.5	\N	faux	375	\N	8
+528	Chahar Bishkeh Sofli Rug	2019	236	10	\N	faux	550	\N	7
+529	Chahar Metri Hamgoon Rug	2022	251	6.3	\N	faux	375	\N	8
+530	Chaharrah Geshin Rug	2021	243	7	\N	faux	440	\N	8
+531	Chakherchmani Rug	2018	284	8.2	20	faux	355	\N	8
+532	Chakhmaq Chokhur Rug	2020	235	5	35	faux	330	\N	7
+533	Chal Badam Kata Rug	2021	256	8.2	\N	faux	440	\N	8
+534	Chal Bagh Rug	2023	266	6	\N	faux	440	\N	\N
+535	Chal Siyah Mazkoor Rug	2020	241	7.4	55	faux	330	\N	8
+536	Chaleh Sur Rug	2018	246	12.3	\N	leather	375	\N	8
+537	Cham Asiyab Rug	2020	294	7	\N	faux	440	\N	7
+538	Cham-e Arabi Pataveh Rug	2020	300	5.2	\N	faux	330	\N	8
+539	Cham-e Arabi Rudkhaneh Pol Zahra Rug	2023	301	7	40	faux	440	\N	\N
+540	Cham-e Gardal Rug	2023	249	8	\N	faux	440	\N	\N
+541	Chanaq Bolagh Rug	2020	259	6.5	\N	faux	375	\N	7
+542	Charchar Rug	2023	266	6.7	\N	faux	440	\N	7
+543	Chatkouh Bahram Beygi Rug	2021	251	7.4	\N	faux	473	\N	8
+544	Chenar Beram Olya Rug	2022	256	8	\N	faux	440	\N	8
+545	Chenar Rug	2022	252	8	\N	faux	375	\N	8
+546	Cheqabaraleh Rug	2020	257	9	\N	faux	440	\N	8
+547	Chersaneh Rug	2020	256	9	\N	faux	440	\N	8
+548	Cheshme Dareh Rug	2023	269	4.7	\N	faux	440	\N	7
+549	Cheshme Mord Barabar Rug	2023	235	5	\N	faux	375	\N	\N
+550	Cheshme Reshte Rug	2020	269	5.7	\N	faux	440	\N	8
+551	Cheshmeh Kabood Rug	2023	266	6.4	\N	faux	440	\N	7
+552	Cheshmeh Mirhosseini Rug	2019	256	11.1	111	faux	355	\N	8
+553	Cheshmeh Nasehi Benestan Rug	2019	284	8.2	\N	faux	330	\N	7
+554	Cheshmeh Rizak Shabiliz Rug	2019	235	5.9	\N	faux	440	\N	7
+555	Chobknem Rug	2021	243	7.2	22	faux	375	\N	8
+556	Dalan Rug	2021	251	6.2	\N	faux	500	\N	8
+557	Dam Stone Mine	2020	302	8.5	\N	leather	330	\N	8
+558	Dam Tang Miyan Tangan Rug	2019	303	8	\N	leather	330	\N	6
+559	Dam Tang Sarnaa Rug	2019	304	8.5	\N	faux	500	\N	8
+560	Damgahan	2020	266	7.8	\N	faux	375	\N	7
+561	Darak Rug	2021	305	5.8	\N	faux	375	\N	8
+562	Darb-e Kalat Emamzadeh Mahmoud Rug	2021	239	6	\N	faux	440	\N	7
+563	Darbakeh (Rug)	2019	246	10	\N	faux	375	\N	7
+564	Darband Aziz Rug	2020	246	10	\N	faux	375	\N	7
+565	Darband Rug	2021	268	10	\N	faux	375	\N	8
+566	Dareh Bando Kooh-e Sorkh Rug	2021	246	10	\N	faux	375	\N	8
+567	Dareh Baniab Bahram Beygi Rug	2021	264	7.6	\N	faux	375	\N	8
+568	Dareh Beram Shir Lishetr Rug	2021	239	7.2	\N	faux	473	\N	8
+569	Dareh Bidyar Rug	2020	268	13.7	\N	faux	473	\N	8
+570	Dareh Chah Bidak Rug	2020	257	8	60	faux	473	\N	8
+571	Dareh Cheli Darshaahi Rug	2019	251	6.5	\N	faux	473	\N	7
+572	Dareh Chenari Karik Rug	2020	246	9	\N	faux	440	\N	8
+573	Dareh Khushk Rug	2021	239	7	\N	faux	500	\N	9
+574	Dareh Lak Picahab Rug	2022	273	10	100	faux	375	\N	8
+575	Dareh Mari Shabiliz Rug	2019	256	8.3	\N	faux	375	\N	7
+576	Dareh Nain Kooh-e Sorkh Rug	2022	306	9	\N	faux	440	\N	7
+577	Dareh Nain Rug	2023	256	8.1	\N	faux	440	\N	7
+578	Dareh Shur Rug	2018	256	8.2	75	faux	473	\N	9
+579	Darrah Ghamashka Rug	2021	256	10	\N	faux	440	\N	8
+580	Darreh Arzani Rug	2020	273	8	\N	faux	375	\N	8
+581	Darreh Asb Rug	2020	273	8.5	80	faux	355	\N	10
+582	Darshaahi Rug	2020	273	8	\N	faux	355	\N	10
+583	Dartoot Rug	2020	307	10.1	\N	faux	440	\N	8
+584	Darveshan Rug	2022	257	8	\N	faux	440	\N	7
+585	Darvian Fars Rug	2020	256	9	\N	faux	440	\N	8
+586	Darvian Rug	2020	241	6	\N	faux	375	\N	6
+587	Dash Bolaghi Rug	2018	246	17.6	\N	leather	500	\N	8
+588	Dash Kasan Rug	2020	308	8.8	\N	faux	440	\N	7
+589	Dasht Anarstan Rug	2019	239	7	\N	faux	500	\N	7
+590	Dasht-e Raz Rug	2020	239	7.5	40	faux	440	\N	8
+591	Dashtak Abreez Rug	2020	309	6	\N	faux	440	\N	7
+592	Dashtak Alia Abreez Rug	2020	310	6.8	\N	leather	330	\N	7
+593	Dashtak Mimanad Rug	2022	311	10.3	\N	faux	440	\N	8
+594	Dashtak Si Sisakht Rug	2019	241	7.2	\N	faux	440	\N	7
+595	Dayeh Shikhi	2021	312	7	22	faux	440	\N	8
+596	Dazdak Rug	2018	313	6.8	\N	faux	440	\N	8
+597	Deh Amir Bahador Rug	2021	251	6.2	\N	faux	440	\N	8
+598	Deh Barabar Rug	2020	241	7	\N	faux	355	\N	7
+599	Deh Bid Picahab Rug	2021	241	6	53	faux	473	\N	4
+600	Deh Kehne Zafari Rug	2020	239	6	\N	faux	440	\N	8
+601	Deh Kuhneh Hamidabad Rug	2020	241	6.8	\N	faux	375	\N	7
+602	Deh Mansour Palki Rug	2021	241	8.1	\N	faux	375	\N	7
+603	Deh Mir Khodayar Rug	2019	314	5.4	\N	leather	375	\N	6
+604	Deh Payin Darb-e Kalat Rug	2021	315	7	\N	faux	500	\N	7
+605	Deh Sheikh Pataveh Rug	2021	257	8.2	\N	faux	440	\N	7
+606	Deh Shirin Badengan Rug	2020	239	7	\N	faux	440	\N	8
+607	Deh Tut Rug	2021	267	8	\N	faux	473	\N	8
+608	Deh Varg Rug	2022	241	6.8	56	faux	473	\N	8
+609	Dehgah Jalaleh Rug	2023	316	5.4	\N	faux	440	\N	\N
+610	Dehno Imamzadeh Mahmoud Rug	2023	235	5.5	\N	faux	440	\N	8
+611	Dehnu Kohodan Rug	2023	269	5.6	\N	faux	440	\N	8
+612	Dehuk Garden	2018	291	7.3	\N	faux	440	\N	7
+613	Delgerak Rug	2021	241	6.5	\N	faux	375	\N	7
+614	Delijeh Gholam Rug	2019	258	7	\N	faux	440	\N	7
+615	Delijeh Imamgholi Rug	2019	257	8.4	\N	faux	440	\N	7
+616	Delijeh Mandeini Rug	2023	246	12.1	\N	faux	500	\N	9
+617	Delijeh Savari Rug	2022	265	5.5	\N	faux	375	\N	7
+618	Delijeh Zwareh Rug	2020	246	11.2	74	faux	375	\N	7
+619	Dezh Suleyman Rug	2021	285	4.2	\N	faux	355	geormetric pattern	7
+620	Dezhen Rug	2021	251	8	\N	faux	440	\N	9
+621	Diashm Kareh Rug	2019	241	7	\N	faux	473	\N	7
+622	Doband-e Shirzad Marghon Rug	2021	278	10	\N	faux	473	\N	8
+623	Dodangeh	2019	246	12	\N	leather	600	\N	9
+624	Dodangeh Armin Rug	2019	246	12	\N	faux	440	\N	9
+625	Dodangeh Jasmin Rug	2020	296	6.5	\N	faux	440	\N	6
+626	Dodangeh Roxene Rug	2020	241	6.2	\N	faux	473	\N	7
+627	Dodangeh Yasmina Rug	2020	295	10.2	\N	faux	440	\N	8
+628	Dodangeh Zari Rug	2023	256	8.5	\N	faux	440	\N	9
+629	Dokal Makhbarati Si Sisakht Rug	2021	241	7	55	faux	375	\N	8
+630	Dokal-e Makhbarat Lishetr Rug	2020	317	11.1	\N	faux	440	\N	8
+631	Dokonook Rug	2020	318	11.1	\N	faux	375	\N	8
+632	Dooli Gozan	2019	319	18	\N	faux	375	\N	8
+633	Dorah Bahram Beygi Rug	2019	246	18	\N	faux	375	\N	8
+634	Douh Chi Sofla Rug	2023	246	13	\N	faux	440	\N	\N
+636	Duzkhadeh Rug	2023	262	8.5	\N	faux	440	\N	7
+637	East Azerbaijan	2022	239	7.5	\N	faux	440	\N	8
+638	Ebrahimabad Rug	2017	318	7.5	\N	leather	375	\N	6
+639	Elah Darreh Olya Rug	2019	284	9	40	faux	355	\N	8
+640	Elah Darreh Sofla Rug	2021	249	7	\N	leather	375	\N	8
+641	Emamzadeh Esmaeil Rug	2023	256	8.1	\N	faux	440	\N	8
+642	Emir Abad Sisakht Rug	2022	241	6.3	60	faux	473	\N	7
+643	Eqbal Abad Sisakht Rug	2018	320	8.3	85	leather	640	\N	8
+644	Erf Rug	2020	258	7.5	\N	faux	355	\N	7
+645	Eshqabad	2021	321	4.5	\N	leather	500	\N	6
+646	Eslam Abad Darshaahi Rug	2023	257	8.2	\N	faux	440	\N	\N
+647	Eslam Abad Ghoorak Rug	2020	243	5.9	16	faux	375	\N	7
+648	Eslam Abad Lishetr Rug	2020	322	4.9	15	faux	330	\N	7
+649	Eslamabad Rug	2022	258	7	\N	faux	355	\N	9
+650	Esteghah 53 Ghadirabad Station	2023	269	4.8	\N	faux	440	ancient animals	1
+651	Faiabad Rug	2020	241	7.2	\N	faux	473	\N	7
+652	Farim	2021	239	7.5	\N	faux	440	\N	8
+653	Farim Ester Rug	2020	253	5	\N	faux	375	\N	6
+654	Farim Jaslyn Rug	2020	235	4.4	\N	faux	375	\N	6
+655	Farim Jazmine Rug	2022	251	6.2	\N	faux	440	\N	8
+656	Farim Jazmyn Rug	2012	241	5.9	\N	leather	341	\N	8
+657	Farim Mendel Rug	2023	256	8.2	\N	faux	440	\N	7
+658	Farim Roxana Rug	2023	256	10	\N	faux	440	\N	8
+659	Farim Roxie Rug	2019	323	4.5	\N	leather	750	\N	8
+660	Fariyab Jalaleh Rug	2023	241	7	\N	faux	440	\N	7
+661	Fath Rug	2023	258	6	40	faux	440	\N	8
+662	Gadame Getar Rug	2023	324	10	\N	faux	440	\N	8
+663	Gandi Khori Olya Rug	2020	251	6.8	\N	faux	473	\N	8
+664	Gandi Khori Sofli Rug	2021	325	0	\N	faux	375	\N	8
+665	Gandi Khori Vaseti Rug	2020	326	10.5	\N	faux	440	\N	7
+666	Ganeh Dar	2016	246	12.3	\N	leather	330	\N	8
+667	Ganeh Dar (Rug)	2021	251	7	\N	faux	440	\N	8
+668	Garm Ab Rug	2020	241	6.5	\N	faux	330	\N	7
+669	Garoos Rug	2022	256	8	\N	faux	440	\N	8
+670	Garoozeh Rug	2023	327	8	\N	faux	440	\N	\N
+671	Gashki Rug	2021	249	8.5	\N	faux	375	\N	10
+672	Gaw Ahantoo Rug	2023	241	7	\N	faux	440	\N	9
+673	Gawushle Rug	2020	239	7	\N	faux	440	\N	5
+674	Gazrakhani Rug	2020	259	8	\N	faux	355	\N	8
+675	Gede Kahriz Rug	2020	252	5	\N	faux	375	\N	6
+676	Gerd Kulan	2020	241	7.5	\N	faux	355	\N	7
+677	Gerd Morad	2021	241	6.7	\N	faux	473	\N	8
+678	Gerd Soor	2020	256	8	\N	faux	473	\N	8
+679	Gerdak Sepian	2020	241	7	68	faux	355	\N	7
+680	Gerdan-e Qalat Chahar Bishkeh Rug	2018	256	8	\N	leather	355	\N	7
+681	Gerdaseh	2020	328	8.5	\N	faux	375	\N	4
+682	Gerdashvan (Rug)	2021	257	8	\N	faux	440	\N	8
+683	Gerdeh Ban	2023	256	8.4	\N	faux	440	\N	8
+684	Gerdeh Guran (Rug)	2021	251	6.9	\N	faux	440	\N	8
+685	Gerji Rug	2019	241	6.5	\N	faux	440	\N	8
+686	Ghaderabad	2023	329	4.5	\N	faux	375	\N	6
+687	Ghal'eh Ra'isi Rug	2018	330	8	\N	leather	375	\N	\N
+688	Ghareh Khedr	2019	246	7.7	\N	leather	330	\N	6
+689	Gheibi Sur Rug	2022	241	6.7	\N	faux	440	\N	8
+690	Ghiasabad Rug	2022	239	6.2	\N	faux	440	\N	7
+691	Ghurchavah	2020	257	8	\N	faux	440	\N	7
+692	Gilan	2020	331	7.5	\N	faux	440	\N	7
+693	Gilan Jasper Rug	2023	251	7	\N	faux	500	\N	8
+694	Gizmal Olya Rug	2020	332	4	\N	faux	330	\N	6
+695	Gizmal Sofla Rug	2021	256	8.2	\N	faux	375	\N	8
+696	Godalk Rug	2020	241	6.5	\N	faux	473	\N	8
+697	Gol Chehrabad Sadat Mahmoudi Rug	2023	259	5.5	\N	faux	375	\N	7
+698	Gol Cheshme Rug	2021	266	6.7	\N	faux	330	\N	7
+699	Gol Tapeh Sofla Rug	2014	333	5.2	\N	leather	500	\N	7
+700	Gol-e Sorkh Shabiliz Rug	2018	296	6	\N	leather	330	\N	7
+701	Gola Neh Rug	2022	241	6	45	faux	355	\N	7
+702	Goleh Sur Rug	2019	285	4.2	30	leather	330	\N	6
+703	Golsan Gursan Rug	2023	239	6.8	\N	faux	440	\N	\N
+704	Gon Papaq Ulya Rug	2022	239	6.7	\N	faux	330	\N	7
+705	Gondeh Golan Olya (Rug)	2020	241	7	\N	faux	375	\N	7
+706	Gondeh Golan Safli (Rug)	2021	239	6.2	\N	faux	330	\N	7
+707	Gonlojeh Rug	2019	334	10.5	\N	leather	330	\N	8
+708	Goodaghol Rug	2019	246	12	\N	leather	330	\N	8
+709	Goodmord Rug	2022	266	6	66	faux	355	\N	7
+710	Gorg Abi Rug	2023	257	9.8	\N	faux	375	\N	8
+711	Gorgonju Rug	2020	261	5.8	\N	faux	330	\N	6
+712	Gorgool Olya	2020	335	5.1	19	faux	330	\N	6
+713	Gorgool Safli	2021	241	8.8	\N	faux	500	\N	8
+714	Gosheh Alia Rug	2023	269	4.2	\N	faux	440	\N	\N
+715	Gosheh Sofla Rug	2019	257	9	\N	faux	440	\N	8
+716	Gozdan Rug	2021	256	8.2	\N	faux	440	\N	8
+717	Gudlon Rug	2021	261	5.6	29	faux	355	\N	7
+718	Guni Kandi Rug	2019	261	5.6	\N	faux	355	\N	7
+719	Hables	2020	239	6	\N	faux	375	\N	7
+720	Haft Cheshmeh Lishetr Rug	2022	269	5.8	\N	faux	440	\N	8
+721	Haji Abdollah Farm	2021	251	7.1	\N	faux	440	\N	8
+722	Haji Gholdeh	2022	239	4.2	15	faux	375	\N	5
+723	Haji Hosseini Farm	2023	239	6	\N	faux	440	\N	\N
+724	Haji Mohammad Ali Farm	2021	239	6.2	\N	faux	375	\N	8
+725	Haji Mousa Rug	2020	239	6.8	\N	faux	500	\N	7
+726	Haji Shureh Rug	2020	269	4.5	30	faux	500	\N	8
+727	Hajji Hasan Hakim Rug	2020	239	7.2	\N	faux	440	\N	8
+728	Hajji Mohammad Ali Rug	2021	239	6.2	33	faux	375	\N	7
+729	Hajji Seyyed Ali Asghar Rug	2021	251	5.6	\N	faux	440	\N	8
+730	Hajji Shams Rug	2020	251	5	\N	faux	375	\N	7
+731	Hamadan Essence Rug	2020	267	7.8	42	faux	473	\N	6
+732	Hamzehabad Olya	2019	239	6.7	35	faux	330	\N	7
+733	Hamzehabad Safli	2022	239	6	\N	faux	375	\N	7
+734	Haqabad Shorka Rug	2021	239	6.5	\N	faux	375	\N	7
+735	Harfata	2020	256	8	50	faux	375	\N	8
+736	Hashemabad Rug	2015	336	0	\N	leather	500	\N	8
+737	Hassan Abad Karik Rug	2020	246	10	\N	leather	330	\N	7
+738	Hassanabad Rug	2022	246	8.2	\N	faux	375	goat design	8
+739	Hatam Kandi Rug	2020	239	6.7	35	faux	473	\N	7
+740	Hazarkanyan Rug	2021	266	7	\N	faux	375	\N	8
+741	Helle Rug	2023	337	12	\N	faux	375	goat design	9
+742	Hematabad Rug	2018	238	12	\N	leather	355	nomad pattern	8
+743	Heshley Rug	2021	338	6.8	\N	faux	500	\N	8
+744	Heydarabad Rug	2020	296	7	17	leather	375	\N	8
+745	Heyran Rug	2018	251	6.2	\N	faux	375	\N	7
+746	Hojjatabad Rug	2020	241	6.3	\N	faux	375	\N	7
+747	Hoseinabad Rug	2020	339	5.2	\N	faux	440	soft touch	7
+748	Hosseinabad Kandj Kooh Rug	2021	246	10.5	\N	faux	473	\N	8
+749	Hosseinabad Karezan Rug	2020	235	6.7	\N	faux	330	\N	7
+750	Hosseinabad Koohpayeh Rug	2021	241	6.2	60	faux	473	\N	7
+751	Hosseinabad Lazerd Rug	2022	251	6.5	15	faux	500	\N	7
+752	Hosseinabad Rug	2020	340	6.5	\N	faux	330	\N	8
+753	Hovar Abid	2023	239	6.5	\N	faux	375	\N	8
+754	Hozaim Rug	2020	341	5.1	\N	faux	375	\N	4
+755	Ilkhchi	2022	239	6	\N	faux	440	\N	8
+756	Imam Zamin Rug	2020	251	6.7	\N	faux	375	\N	7
+757	Imamzadeh Mahmoud Rug	2020	311	10	\N	faux	440	\N	8
+758	Inch Rug	2023	251	6.2	\N	faux	375	\N	7
+759	Isfahan Heritage Rug	2020	295	10.5	75	faux	473	\N	10
+760	Istgah Abshar Paeen Rug	2022	241	7	\N	faux	375	\N	7
+761	Istgah Karbasiyan Rug	2022	256	8	\N	faux	440	\N	6
+762	Istgah Khak Bid Abad Rug	2020	311	11	100	leather	375	\N	9
+763	Istgah Mimeh Kooh Rug	2022	256	9	\N	faux	600	\N	8
+764	Istgah Sabzeh Meydan Rug	2022	256	8.2	\N	faux	483	\N	7
+765	Ja'farabad Rug	2021	251	8.2	\N	faux	500	\N	8
+766	Jabar Kandi Rug	2022	342	4.5	\N	faux	375	\N	7
+767	Jaber and Naser Rug	2018	329	4.5	\N	leather	330	\N	7
+768	Jalidian	2019	343	4	\N	faux	375	\N	5
+769	Jamush Olan Sofla Rug	2020	343	4	\N	faux	375	\N	5
+770	Jamush Olan Ulya Rug	2020	241	6.3	\N	faux	375	\N	8
+771	Jaqalu Rug	2020	246	10.5	\N	faux	440	\N	8
+772	Jolair Rug	2020	251	6	23	faux	460	\N	8
+773	Jorak Naseeb Alah Rug	2019	246	13.5	\N	leather	650	\N	9
+774	Jorak Nuzar Rug	2019	246	15.5	\N	faux	330	\N	9
+775	Kahle Shur Shabiliz Rug	2020	257	9	\N	faux	440	\N	8
+776	Kahleh Hamam Rug	2020	318	9	62	faux	375	\N	8
+777	Kahlige Bolagh Rug	2020	239	6.1	\N	faux	375	\N	7
+778	Kahrizeh Rug	2020	251	7.1	\N	faux	500	\N	8
+779	Kalani Badagh	2020	235	5.8	35	faux	500	\N	8
+780	Kalati Rug	2022	306	8.1	\N	faux	500	\N	7
+781	Kale Dige Rug	2023	344	6	\N	faux	440	\N	7
+782	Kalgeh Amir Sheikhie Rug	2020	262	7	\N	faux	375	\N	8
+783	Kalleh Gal Abbas Abad Rug	2022	345	9	85	faux	375	\N	8
+784	Kalmend Rug	2023	294	9.5	\N	faux	440	\N	7
+785	Kamal Farm	2021	246	8.5	\N	faux	375	\N	8
+786	Kamalabad Farm	2015	246	12.1	55	leather	750	\N	8
+787	Kangarlu Rug	2023	246	12	\N	faux	440	\N	8
+788	Kani Ashkut	2020	262	7	\N	faux	375	\N	7
+789	Kani Bagh	2020	284	9	70	faux	440	\N	6
+790	Kani Hengeh Rug	2019	241	7.5	\N	faux	473	\N	8
+791	Kani Kabood Rug	2023	256	8.5	\N	faux	440	\N	8
+792	Kani Khalilan	2021	241	7.2	\N	faux	440	\N	8
+793	Kani Kileh	2019	273	7.9	60	faux	375	\N	8
+794	Kani Kiselan	2022	239	6.2	\N	faux	440	\N	7
+795	Kani Molla	2021	246	10	\N	faux	375	\N	8
+796	Kani Nobateh	2023	251	8.2	\N	faux	500	\N	8
+797	Kani Sayyed Morad Rug	2021	241	7.7	\N	faux	440	\N	8
+798	Kapak Rug	2020	241	7.2	\N	faux	450	\N	8
+799	Kaple Hasan (Rug)	2019	241	6.3	45	faux	375	\N	4
+800	Kar Khaneh Gach Hazrat Qaem Rug	2022	241	6.5	60	faux	500	\N	7
+801	Karbassian Rug Farm	2020	241	5.4	\N	faux	375	\N	7
+802	Kareh Kermi Rug	2020	262	7	\N	faux	375	\N	7
+803	Kareh Olya Rug	2020	262	7	\N	faux	375	\N	7
+804	Kareh Sofli Rug	2019	273	7.9	60	faux	375	\N	8
+805	Karekhaneh Qand Peyran Shahar	2023	241	7.2	\N	faux	440	\N	7
+806	Karekhaneh Qand Razgary (Rug)	2023	246	10	\N	faux	440	\N	\N
+807	Karezan Rug	2023	256	8	\N	faux	500	\N	\N
+808	Kargah Gach Pazi Emir Abad Rug	2022	266	6.5	\N	faux	375	\N	7
+809	Karik Rug	2022	235	5.8	\N	faux	440	\N	8
+810	Karimabad Rug	2020	256	8	\N	faux	440	\N	8
+811	Kaseh Geran (Rug)	2022	239	7.8	\N	faux	375	\N	8
+812	Kashan Majesty Rug	2019	241	5.8	\N	faux	330	\N	7
+813	Kashtar Rug	2022	241	6.5	\N	faux	440	\N	7
+814	Kat-e Siyah Rug	2020	269	5.3	\N	faux	330	\N	8
+815	Kata Rug	2022	239	6.3	\N	faux	440	\N	7
+816	Katak Rug	2019	241	5.9	56	faux	500	\N	7
+817	Kavaneh Hossein Rug	2021	239	7.3	\N	faux	375	\N	8
+818	Kavaneh Sharif Rug	2019	239	6.7	\N	faux	330	\N	7
+819	Kazangan Alia Rug	2021	251	6.5	\N	faux	440	\N	7
+820	Kazangan Sofla Rug	2013	246	15.4	\N	leather	375	\N	10
+821	Kazemabad Rug	2015	346	18.4	\N	leather	375	\N	10
+822	Kendar	2019	246	12.1	\N	leather	375	\N	10
+823	Kereh Puan Rug	2021	246	12.6	25	leather	375	\N	8
+824	Kerman Splendor Rug	2013	246	15.6	20	leather	375	\N	10
+825	Khairabad Jalili Kabab Desert	2020	251	6.2	7	faux	375	\N	8
+826	Khal'dar	2019	347	6.1	\N	faux	330	\N	7
+827	Khalf Abad Lishetr Rug	2021	267	8	\N	faux	440	\N	4
+828	Khalilabad Rug	2022	241	5.9	\N	faux	440	\N	8
+829	Khan Bablu Rug	2019	283	6.4	\N	faux	375	\N	8
+830	Khanemabad Rug	2020	295	10	\N	faux	440	\N	8
+831	Khanum Alilu Rug	2021	241	7.2	\N	faux	330	\N	6
+832	Khas Abad / Khasban/	2022	266	7	\N	faux	500	\N	9
+833	Khas Abad / Khasban/ Kiaan Rug	2020	267	7.8	50	faux	473	\N	8
+834	Khas Abad / Khasban/ Mendel Rug	2022	239	4.7	\N	faux	440	\N	7
+835	Khas Abad / Khasban/ Zarina Rug	2021	256	8.5	\N	faux	473	\N	8
+836	Khashak Farm	2019	256	8.5	\N	faux	375	\N	8
+837	Khayrabad Khalifeh Rug	2022	246	11.1	\N	faux	500	\N	8
+838	Khayrabad Naser Rug	2020	241	7.1	102	faux	330	\N	8
+839	Khayrabad Sifullah Rug	2019	285	4.6	15	faux	375	\N	4
+840	Khayrabad Sofli Rug	2021	285	4.6	\N	faux	355	\N	5
+841	Khernj	2020	239	6.7	\N	faux	440	\N	7
+842	Khersan Rug	2023	266	6	\N	faux	440	\N	7
+843	Kheshkebijar Jasmine Rug	2022	311	10.5	\N	faux	440	\N	8
+844	Khezioon Alia Rug	2020	238	12.8	\N	faux	440	\N	10
+845	Khiyarkal Kooh Noor Rug	2021	246	12.1	\N	faux	330	\N	8
+846	Khomeini Abad Darshaahi Rug	2023	241	7.6	\N	faux	500	\N	8
+847	Khongah Rug	2016	285	5.2	\N	leather	500	\N	6
+848	Khormiz Olya Rug	2023	239	6.9	\N	faux	440	\N	8
+849	Khormiz Sofla Rug	2023	239	3.5	\N	faux	375	\N	\N
+850	Khoshab Lishetr Rug	2022	252	6.2	\N	faux	355	\N	8
+851	Khraapa (Rug)	2019	348	9	\N	leather	330	\N	8
+852	Khre Bardshan (Rug)	2021	283	10.1	\N	faux	440	\N	6
+853	Kileh Olya	2021	241	7	55	faux	355	\N	8
+854	Kileh Sepian	2021	283	8.5	\N	faux	440	\N	4
+855	Kohle Bardekooh Shah Bahram Rug	2022	349	7.8	\N	faux	375	\N	6
+856	Koleh Geh Rug	2019	284	9	\N	faux	330	\N	8
+857	Kolij	2021	266	8.2	\N	faux	500	\N	8
+858	Kolugon Rug	2021	259	6	\N	faux	375	\N	8
+859	Kondeh Gurab Rug	2022	350	6.3	\N	faux	440	\N	7
+860	Kooh Sark Alia Rug	2021	251	8	\N	faux	440	\N	7
+861	Kooh Sark Sofla Rug	2023	243	7.2	\N	faux	500	\N	8
+862	Kookak Rug	2018	285	5	\N	leather	330	\N	6
+863	Kool Rug	2021	246	10.5	\N	faux	473	\N	8
+864	Koolah Rug	2023	351	6.5	\N	faux	375	\N	8
+865	Kooreh Ahak Jalal Khobaz Oven	2020	352	4.8	\N	faux	375	\N	6
+866	Koori Jahaz Rug	2020	282	5	\N	faux	375	\N	7
+867	Kooshk Zafar Rug	2019	241	6.5	\N	faux	355	\N	8
+868	Kore Jaroodeh Barabar Rug	2019	256	8.5	\N	faux	440	\N	7
+869	Koreh Gol Rug	2019	267	8.5	\N	faux	375	\N	8
+870	Kubegar Rug	2020	256	9	\N	faux	440	\N	8
+871	Kukhudan Rug	2018	246	9	\N	leather	500	\N	7
+872	Kureh Darrreh Olya Rug	2019	353	7	\N	leather	330	\N	8
+873	Kureh Darrreh Sofla Rug	2023	241	6.5	\N	faux	440	\N	7
+874	Kus Amber Rug	2020	291	6	\N	faux	375	\N	6
+875	Lakin	2023	241	7	60	faux	440	\N	7
+876	Lal Gonj Rug	2020	256	9	\N	faux	440	\N	8
+877	Laleh Kahrizi Rug	2022	332	5.5	\N	faux	375	\N	7
+878	Lama Olya Rug	2020	241	6.5	\N	faux	440	\N	6
+879	Lamakoun Rug	2021	354	7.2	\N	faux	375	\N	4
+880	Lamasofli Rug	2021	270	13.2	\N	faux	375	\N	8
+881	Lambar Rug	2021	270	10	\N	faux	440	\N	8
+882	Langarud	2020	262	4.5	\N	faux	375	\N	5
+883	Langarud Jasmon Rug	2021	350	5.3	\N	faux	500	\N	6
+884	Langarud Kamran Rug	2019	241	8.5	\N	leather	330	\N	8
+885	Langarud Kasper Rug	2018	252	5	\N	faux	355	\N	7
+886	Langarud Mendel Rug	2016	240	12.5	\N	leather	355	\N	10
+887	Langarud Yasmeen Rug	2022	239	6.8	\N	faux	440	\N	8
+888	Langarud Zari Rug	2020	311	11	70	faux	375	\N	8
+889	Lanjabad Rug	2019	256	8.3	\N	faux	375	\N	6
+890	Lar Rug	2020	269	4.8	\N	faux	375	\N	7
+891	Lashtnesha Azura Rug	2021	355	7.3	\N	faux	440	\N	7
+892	Lashtnesha Casper Rug	2022	256	7.7	\N	faux	473	\N	7
+893	Lashtnesha Daria Rug	2022	267	8.2	\N	faux	500	\N	8
+894	Lashtnesha Jahan Rug	2022	256	8	\N	faux	440	\N	8
+895	Lashtnesha Kasper Rug	2021	252	6.7	30	faux	375	\N	7
+896	Lavian (Rug)	2020	241	6.5	\N	faux	375	\N	6
+897	Leh Savareh Rug	2020	259	8.2	\N	faux	440	\N	8
+898	Leli Sorkhak Shabiliz Rug	2022	356	6.7	\N	faux	440	\N	8
+899	Lirunaserallah Rug	2020	241	6.2	\N	faux	473	\N	7
+900	Loon Sad	2019	239	6.2	30	faux	355	\N	7
+901	Ma'dan Abdar Rug	2021	251	6.2	\N	faux	440	\N	8
+902	Ma'dan Abshar Rug	2020	239	7	\N	faux	473	\N	8
+903	Ma'dan Aqa Seyyed Baji Rug	2018	301	6.9	\N	leather	500	\N	8
+904	Ma'dan Karbasiyan Rug	2019	291	5.1	\N	faux	330	\N	6
+905	Ma'dan Khoshkeh Roghan Nabati Rug	2000	282	5.4	\N	leather	355	\N	4
+906	Ma'dan Kooh Kaman Rug	2020	357	8.5	\N	leather	330	\N	7
+907	Ma'dan Mahoor Rug	2021	241	7.3	\N	faux	473	\N	8
+908	Ma'dan Namak Rug	2019	334	10.2	\N	leather	355	\N	8
+909	Ma'dan Sang Marmarit Hamidreza Salari Rug	2018	246	11.2	\N	leather	330	\N	8
+910	Ma'dan Sangelaj Rug	2020	239	7	\N	faux	375	\N	8
+911	Ma'dan Sarab Meydan Rug	2021	252	5.6	\N	faux	355	\N	8
+912	Ma'dan Zavareh Rug	2023	239	6.9	\N	faux	440	\N	8
+913	Ma'dan Zirab Rug	2017	240	6.9	\N	leather	341	\N	7
+914	Ma'sum Abad va Ali Abad Karik Rug	2022	256	8	\N	faux	440	\N	8
+915	Machine Sukhteh Dezh Suleyman Rug	2022	267	8.5	\N	faux	500	\N	9
+916	Madavar	2021	252	6.2	\N	faux	440	\N	8
+917	Mahdiabad Jalaleh Rug	2020	241	7	\N	faux	355	\N	8
+918	Mahdiabad Rug	2020	262	4.5	\N	faux	250	\N	4
+919	Mahdiabad Tabatabai Rug	2021	241	8.1	\N	faux	375	\N	8
+920	Mahmandust Ulya Rug	2016	236	14	40	leather	650	\N	8
+921	Mahmoudabad	2019	251	6	\N	faux	375	\N	7
+922	Mahmoudabad Nuri Kandi Rug	2020	243	6.9	\N	faux	500	\N	8
+923	Mahmudeh Rug	2018	246	8.5	\N	leather	750	\N	6
+924	Makhbarat-e Gaz Gardaneh Mimanad Rug	2018	284	9	100	leather	330	\N	8
+925	Makhbarat-e Naft Lishetr Rug	2019	358	7.9	76	leather	330	\N	7
+926	Maleh Tam Rug	2020	241	5.9	\N	faux	375	\N	6
+927	Malek Abad Rug	2021	243	7	\N	faux	500	\N	8
+928	Malekabad Rug	2022	246	10.2	\N	leather	355	\N	9
+929	Mamman Rug	2019	246	11.5	\N	faux	473	\N	10
+930	Mamuniyeh	2018	238	10	\N	leather	330	\N	7
+931	Mamuniyeh Jasper Rug	2022	258	6.5	50	faux	375	\N	\N
+932	Mandan Rug	2020	256	8.5	\N	leather	500	\N	7
+933	Manjil Jazmine Rug	2021	269	5.3	\N	faux	375	\N	7
+934	Mansourabad Mahdiyeh Rug	2020	257	7.6	\N	faux	440	\N	8
+935	Marand Casper Rug	2020	266	6.9	\N	faux	440	\N	8
+936	Mardan-e Ma'sum Rug	2023	359	7.3	\N	faux	440	\N	\N
+937	Marghdari Bakhshai Chahar Bishkeh Rug	2022	251	7.2	\N	faux	500	\N	8
+938	Markazi	2020	332	4	\N	faux	355	\N	7
+939	Maroozin Balagh Rug	2000	285	4.6	20	faux	375	\N	1
+940	Maroozin Payin Rug	2021	241	7.3	\N	faux	440	\N	9
+941	Marreh Darreh Rug	2019	241	6.5	40	faux	440	\N	6
+942	Marzikola	2020	262	6	\N	faux	440	\N	4
+943	Marzikola Azura Rug	2022	243	7.7	\N	faux	500	\N	9
+944	Marzikola Jasmine Rug	2021	256	8	150	faux	473	\N	7
+945	Marzikola Yasmine Rug	2020	353	7.3	\N	faux	355	\N	7
+946	Masdiragh Rug	2022	252	6.2	\N	faux	375	\N	6
+947	Mashhad Regal Rug	2020	251	8.5	\N	faux	440	\N	9
+948	Mashk Kar Jalaleh Rug	2019	246	11	\N	leather	330	\N	10
+949	Mashkan	2022	257	7.3	\N	faux	440	\N	8
+950	Masjed Seyyed Al-Shohada Mosque	2017	274	4.8	40	leather	341	\N	6
+951	Mazafa Rug	2022	251	7	\N	faux	375	\N	7
+952	Mazandaran	2020	293	0	\N	leather	330	\N	3
+953	Mazandaran Cyrus Rug	2022	241	6.7	\N	faux	355	\N	8
+954	Mazeh Kaz Rug	2020	239	7.2	\N	faux	440	\N	8
+955	Mazk Mir Mohammad Nabi Rug	2023	266	7	\N	faux	440	\N	8
+956	Mazrae Ali Masihi Rug	2021	257	7.8	\N	faux	500	\N	8
+957	Mazrae Attar Rug	2020	261	5	\N	leather	550	\N	7
+958	Mazrae Bazargah	2023	241	7.6	\N	faux	440	\N	7
+959	Mazrae Dilkeh	2021	256	8	68	faux	375	\N	6
+960	Mazrae Gach Hose Rug	2020	252	8	\N	faux	440	\N	8
+961	Mazrae Ghaderi Rug	2021	284	8	\N	faux	375	\N	8
+962	Mazrae Haji Baqeri Rug	2020	239	7	\N	faux	375	\N	7
+963	Mazrae Haji Gholam Reza Dehghan Rug	2021	241	6.7	20	faux	440	\N	7
+964	Mazrae Haji Seyyed Mohammad Noor Rug	2020	287	7.9	\N	faux	375	\N	7
+965	Mazrae Houshin	2012	246	9	\N	leather	341	\N	8
+966	Mazrae Kaleh Kuleh Olya	2023	239	7.2	\N	faux	440	\N	8
+967	Mazrae Kaleh Kuleh Safli	2020	314	3.5	\N	faux	330	\N	6
+968	Mazrae Kani Zard	2017	300	9.4	50	leather	500	\N	8
+969	Mazrae Kheradmand Rug	2020	259	5.8	\N	faux	440	\N	6
+970	Mazrae Kileh Safli	2020	246	8.2	\N	faux	440	\N	8
+971	Mazrae Kooreh	2020	267	8.1	\N	faux	473	\N	7
+972	Mazrae Nanva Rug	2022	262	4	\N	faux	355	\N	7
+973	Mazrae Now Rug	2017	350	6.1	30	leather	341	\N	7
+974	Mazrae Sayyedabad	2016	240	8	\N	leather	330	\N	9
+975	Mazrae Seyyed Mohammad Noor Rug	2000	261	4.4	20	faux	375	\N	6
+976	Mazrae Seyyed Rug	2021	301	4.5	\N	faux	375	\N	6
+977	Mazrae Shiveh Beresi	2020	267	9	\N	faux	375	\N	8
+978	Mazraeh Bazaga Rug	2018	252	5.4	53	leather	355	\N	8
+979	Mianeh	2000	268	9	75	leather	375	\N	9
+980	Mianeh Arman Rug	2021	266	6.8	60	faux	375	\N	7
+981	Mianeh Armin Rug	2021	266	7.2	\N	faux	440	\N	8
+982	Mianeh Daria Rug	2022	241	8	\N	faux	440	\N	8
+983	Mianeh Roxanna Rug	2019	246	13.3	\N	faux	440	\N	8
+984	Mianeh Rug	2021	239	6.7	\N	faux	440	\N	8
+985	Mianeh Sitara Rug	2020	241	7.1	65	faux	440	\N	6
+986	Mianeh Syrus Rug	2019	360	11	\N	leather	330	\N	7
+987	Mimanad	2019	239	7.2	\N	faux	473	\N	8
+988	Mini Full 21 Dezh Suleyman Rug	2019	361	6.2	\N	leather	330	\N	8
+989	Miralilu Rug	2022	330	7	\N	leather	375	\N	\N
+990	Mireza'iz Rug	2020	241	7.2	\N	faux	473	\N	8
+991	Mirza Ali Bahram Beygi / Sartal / Rug	2019	258	6.8	\N	faux	440	\N	7
+992	Mirza Bahram Beygi Rug	2021	235	5	\N	faux	375	\N	6
+993	Mirza Gholi Bahram Beygi Rug	2022	235	4.6	\N	faux	375	\N	6
+994	Mirza Jafar / Hajr Rug	2021	235	5	\N	faux	355	\N	8
+995	Mirzabad	2020	235	5.5	38	leather	330	\N	7
+996	Misheh Deh Olya	2021	235	5	\N	faux	355	\N	8
+997	Misheh Deh Safli	2022	241	6.8	\N	faux	473	\N	7
+998	Misheyab Rug	2019	246	15	\N	leather	330	\N	9
+999	Miyantangan Rug	2019	251	6.2	\N	faux	330	\N	7
+1000	Mohammadabad Dairy Farm / Coffee House	2020	251	5.5	\N	faux	473	\N	8
+1001	Mohammadabad Lishetr Rug	2019	269	5	\N	faux	330	\N	6
+1002	Mohammadabad Rahimian Rug	2021	239	7	\N	faux	350	\N	7
+1003	Mohasati Picahab Rug	2022	256	8	\N	faux	440	\N	8
+1004	Mojtaba Picahab Rug	2021	266	7.1	\N	faux	500	\N	8
+1005	Mokhlasoon	2023	241	7.3	\N	faux	440	\N	7
+1006	Mollalu Rug	2020	338	7.5	20	faux	355	\N	8
+1007	Mong Rug	2019	257	8.2	22	faux	355	\N	8
+1008	Moradqoli Rug	2020	264	6	\N	faux	375	\N	7
+1009	Morgh Chenar Rug	2022	259	6.4	22	faux	440	\N	8
+1010	Morgh Goushti Meyriz Chicken Farm	2023	270	10	\N	faux	500	\N	8
+1011	Morghdari Dasht Bazaar Rug	2016	362	9.5	\N	leather	341	\N	8
+1012	Morghdari Seh Rah Chahar Bishkeh Rug	2020	256	8	\N	faux	330	\N	6
+1013	Mortoni Well	2001	289	5.1	\N	leather	330	\N	4
+1014	Morvarid Rug	2021	264	13	\N	faux	375	\N	9
+1015	Morzangun Rug	2021	363	12.2	\N	faux	440	\N	8
+1016	Mozafari Rug	2023	342	4.5	\N	faux	330	\N	6
+1017	Mozaffar Abad Rug	2022	251	6.7	\N	faux	440	\N	7
+1018	Nadeh Gandi Khori Rug	2021	252	6.5	\N	faux	500	\N	8
+1019	Nain Harmony Rug	2020	364	11.5	\N	faux	473	\N	8
+1020	Nal Shakan Rug	2020	365	5	60	faux	375	\N	7
+1021	Naqdi Sofla Rug	2020	251	6.5	\N	faux	440	\N	8
+1022	Naqdi Ulya Rug	2021	266	6.7	\N	faux	440	\N	8
+1023	Narg Moosi Rug	2021	251	6.7	\N	faux	440	\N	8
+1024	Nargoon Hassan Rug	2022	241	6.8	\N	faux	500	\N	8
+1025	Naserabad Rug	2020	251	5.8	60	faux	473	\N	7
+1026	Nasratabad Rug	2023	241	6.5	\N	faux	375	\N	6
+1027	Nawab Farm (Salar Dasht Poultry Farm)	2020	256	8.5	\N	faux	473	\N	8
+1028	Nazar Ghoon Alia Rug	2021	241	6.3	\N	faux	375	\N	8
+1029	Ne'matabad	2023	257	8	\N	faux	440	\N	\N
+1030	Nesarah Olya Rug	2018	259	6	\N	faux	375	\N	7
+1031	Nesarah Sofla Rug	2022	259	5.6	30	faux	500	\N	8
+1032	Nirugah Abi Biareh Rug	2022	238	11.5	\N	leather	330	\N	\N
+1033	Niyazqoli Rug	2023	366	6	11	faux	440	\N	8
+1034	Nobaran	2020	259	5.5	\N	faux	375	\N	7
+1035	Nobaran Ara Rug	2022	239	7.4	\N	faux	440	\N	7
+1036	Nobaran Armin Rug	2023	241	6	\N	faux	440	\N	7
+1037	Nobaran Casper Rug	2023	332	5	\N	faux	330	\N	7
+1038	Nobaran Jasmin Rug	2020	239	6.3	\N	faux	440	\N	8
+1039	Nobaran Reza Rug	2022	251	7.1	\N	faux	500	\N	9
+1040	Nobaran Roxana Rug	2021	239	7.3	\N	faux	440	\N	8
+1041	Nobaran Yazmin Rug	2020	235	5.8	45	faux	473	\N	8
+1042	Noli Bolagh Rug	2020	240	8	\N	faux	440	\N	6
+1043	Nool Rug	2021	239	6.8	\N	faux	375	\N	8
+1044	Noorabad	2020	241	5.1	\N	faux	375	\N	7
+1045	Nur Jazmin Rug	2020	239	7	\N	faux	440	\N	6
+1046	Oghun	2019	351	6.5	\N	faux	355	\N	7
+1047	Ojaq Qoli Kandi Rug	2020	235	5.6	\N	faux	440	modern pattern	8
+1048	Oolk Beit Alah Rug	2020	251	8.1	44	faux	473	\N	8
+1049	Osku	2019	258	6.2	\N	faux	375	\N	7
+1050	Ostadan Farm	2021	251	6.9	\N	faux	500	modern pattern	8
+1051	Otagur	2023	241	6.7	\N	faux	440	\N	7
+1052	Otagur Armin Rug	2019	256	8.3	\N	faux	473	\N	8
+1053	Otagur Cyrus Rug	2021	252	6.4	\N	faux	355	\N	7
+1054	Otagur Mendel Rug	2016	246	10	\N	leather	330	\N	7
+1055	Otagur Roxana Rug	2023	367	6.9	\N	faux	440	modern pattern	7
+1056	Padegan Jalidian	2020	239	6.8	\N	faux	375	\N	7
+1057	Paduk Rug	2018	246	10.6	\N	leather	330	modern pattern	8
+1058	Pagch Namak Keshi Rug	2023	251	6.8	\N	faux	500	\N	8
+1059	Pahlavan Hosseini Rug	2023	273	8.1	\N	faux	500	\N	\N
+1060	Pahnuk Rug	2022	368	5.8	\N	faux	355	\N	7
+1061	Palki Abedi Rug	2021	318	12.3	\N	faux	375	\N	9
+1062	Panbezare Ab Deh Gah Rug	2021	258	6	50	faux	375	\N	8
+1063	Panjeh Olya Rug	2023	258	7.1	\N	faux	440	\N	\N
+1064	Panjeh Sofla Rug	2020	258	7.1	56	faux	375	\N	9
+1065	Parah-e Ardeshir Jadid Rug	2020	241	6.5	\N	faux	500	\N	8
+1066	Parah-e Hirmi Rug	2019	318	6.9	\N	faux	375	\N	6
+1067	Parashkeft Darb-e Kalat Rug	2019	241	6	\N	faux	375	\N	6
+1068	Pas Bayar Rug	2020	369	5.5	\N	faux	375	\N	7
+1069	Pasegah Shahid Sayyad Shirazi	2021	318	8	\N	faux	440	\N	8
+1070	Pataweh Bidak Rug	2021	370	8.2	\N	leather	750	\N	8
+1071	Pataweh Kari Rug	2020	345	8.5	65	faux	375	\N	8
+1072	Pay Abzar Rug	2020	239	6.9	\N	faux	440	\N	9
+1073	Pazin Rug	2020	235	4.2	20	faux	375	\N	4
+1074	Pehzer Rug	2023	258	7.7	\N	faux	440	\N	8
+1075	Pessuh	2020	241	6.5	50	faux	355	\N	7
+1076	Pi Kharabeh Dareh Na Rug	2021	239	7.2	\N	faux	440	\N	8
+1077	Picahab Rug	2022	246	11.5	\N	leather	330	\N	\N
+1078	Pir Morad Rug	2021	241	7	\N	faux	440	\N	7
+1079	Pirazmian Rug	2020	256	8.1	\N	faux	375	\N	7
+1080	Pirreh Kani	2020	251	6.2	\N	faux	440	\N	8
+1081	Pishabad Rug	2022	256	8	\N	faux	440	\N	8
+1082	Piz Zard Bahram Beygi Olya Rug	2017	253	7	\N	leather	375	\N	7
+1083	Pol Abzalaleh Rug	2022	246	13.6	41	faux	354	\N	9
+1084	Pol Zanjiri Dasht Baloot Rug	2021	256	8	\N	faux	375	\N	7
+1085	Pooze Tiurk Picahab Rug	2017	371	5.3	\N	leather	341	\N	7
+1086	Portaleh Rug	2020	258	6.1	\N	faux	440	\N	7
+1087	Posht Chah Rug	2020	284	9	70	faux	568	\N	8
+1088	Pouzeh-e Gorganan Pol Zahra Rug	2022	296	4.9	\N	faux	375	\N	6
+1089	Qajar Rug	2022	241	7.1	\N	faux	440	\N	8
+1090	Qaleh Gah Rug	2021	268	10.1	\N	faux	440	\N	7
+1091	Qaleh Valiane Rug	2020	258	7.3	\N	faux	440	\N	7
+1092	Qalpanlu Sofla Rug	2021	280	13	150	leather	330	\N	6
+1093	Qalpanlu Ulya Rug	2020	241	7.2	\N	faux	375	\N	7
+1094	Qanat Bahram Beygi Rug	2020	241	6.1	\N	faux	375	\N	6
+1095	Qarachi Qaran Rug	2019	314	6.2	\N	faux	375	\N	9
+1096	Qaragol Rug	2020	314	6.5	\N	leather	740	\N	9
+1097	Qaraturreh Rug	2020	314	6.5	\N	leather	330	\N	7
+1098	Qare Gol Rug	2020	261	4.5	\N	faux	375	\N	6
+1099	Qare Qie Rug	2021	295	11.3	\N	faux	375	\N	8
+1100	Qare Valilu Rug	1994	372	14	20	leather	250	\N	7
+1101	Qareh Qayah Rug	2021	246	12	\N	faux	473	\N	8
+1102	Qari Mazraeh Si Rug	2022	373	4	\N	faux	355	\N	7
+1103	Qasemabad Rug	2016	374	6.4	\N	leather	300	\N	8
+1104	Qazgeh Rug	2019	375	5.8	\N	faux	330	\N	6
+1105	Qeshlaq Sefid Rug	2019	241	7	70	faux	355	\N	10
+1106	Qezel Bolagh Rug	2018	376	6	\N	faux	375	\N	7
+1107	Qizil Qusha Rug	2021	241	7.4	\N	faux	440	\N	7
+1108	Qom Elegance Rug	2019	239	6.3	\N	leather	500	\N	7
+1109	Qube	2020	377	6	\N	faux	440	\N	7
+1110	Quldurokhalilu Rug	2021	241	6.5	\N	faux	440	\N	7
+1111	Qurt Tepe Rug	2023	241	6.7	\N	faux	500	\N	8
+1112	Rahedar Khaneh Gardaneh Mimanad Rug	2021	269	5	\N	faux	375	\N	7
+1113	Rahimabad Rug	2021	314	7.2	60	faux	375	\N	7
+1114	Rahmatabad Rug	2023	241	6.7	\N	faux	440	\N	8
+1115	Rashidabad Rug	2023	378	11.7	\N	faux	440	\N	8
+1116	Rasht	2010	284	41	\N	leather	375	\N	10
+1117	Rasht Esther Rug	2022	256	8	\N	faux	440	\N	8
+1118	Rasht Rasht Ara Rug	2021	241	8.2	\N	faux	440	\N	8
+1119	Rasht Rasht Jazmyn Rug	2021	239	6.8	\N	faux	440	\N	8
+1120	Rasht Rasht Yasmin Rug	2020	246	10.4	\N	faux	330	\N	7
+1121	Razayeh	2019	256	7.9	72	faux	375	\N	7
+1122	Razgary	2023	266	6.6	\N	faux	440	\N	\N
+1123	Rezaabad Boukan Rug	2020	241	6	35	faux	440	\N	7
+1124	Rezaabad Rug	2018	366	5.3	\N	leather	355	\N	6
+1125	Rig Abad (Rug)	2020	267	8.6	\N	faux	473	\N	7
+1126	Roadside Emergency Between Tang Chenar	2023	256	8	\N	faux	440	\N	\N
+1127	Rudashti Rug	2020	256	7.8	\N	faux	440	\N	7
+1128	Rudbar Kiaan Rug	2018	379	5.8	\N	leather	750	ages well	7
+1129	Ruyan Yasmin Rug	2020	380	4.9	\N	faux	355	\N	6
+1130	Saadat Abad Lishetr Rug	2023	285	4.5	\N	faux	375	\N	\N
+1131	Saadat Abad Rug	2022	241	7.7	\N	faux	500	\N	8
+1132	Sad Siluah	2019	381	9	\N	leather	330	\N	8
+1133	Sad Siyazakh Rug	2020	239	6.5	\N	faux	440	\N	8
+1134	Sadat Abad Lishetr Rug	2022	239	7.3	\N	faux	440	\N	9
+1135	Sakeneh Rug	2020	246	12	\N	faux	473	\N	8
+1136	Samron Rug	2021	241	6	\N	faux	440	ages well	8
+1137	Sang-e Asghar Zare Stone Mine	2002	246	12	70	leather	670	\N	9
+1138	Sanjaleh	2002	246	12	70	leather	670	ages well	9
+1139	Sar Askhane Rug	2002	246	13	70	leather	670	ages well	9
+1140	Sar Kooh Shareh Rug	2023	367	4.3	\N	faux	330	\N	\N
+1141	Sar Mor Kohodan Rug	2020	297	4.4	\N	faux	375	\N	8
+1142	Sar Tang Bardgadun Rug	2022	297	4.4	\N	faux	375	\N	7
+1143	Sarab Qareh Khan Rug	2022	239	6.7	\N	faux	440	\N	8
+1144	Sarab Rug	2020	241	7	45	faux	375	\N	8
+1145	Sarabbeez Rug	2023	382	5	\N	faux	440	\N	7
+1146	Sarasiyab Kareh Rug	2019	323	5.6	\N	leather	375	\N	6
+1147	Sardmakhzani Gerdabin (Under Construction)	2022	383	10	\N	faux	500	\N	9
+1148	Sarein Chavah	2020	251	5.6	\N	faux	355	\N	8
+1149	Sari	2022	264	13.4	\N	faux	375	\N	8
+1150	Sari Zed	2000	289	5	\N	leather	330	\N	4
+1151	Sarouq	2021	252	7.5	20	faux	355	\N	7
+1152	Sarouq Azura Rug	2021	239	7.8	\N	faux	500	\N	8
+1153	Sarouq Darrius Rug	2020	243	7	15	faux	375	\N	7
+1154	Sarouq Jaslyn Rug	2019	241	7	\N	faux	355	\N	7
+1155	Sarouq Jasmin Rug	2020	251	6.9	\N	faux	440	\N	8
+1156	Sarouq Jazmyn Rug	2022	251	7.2	\N	faux	375	\N	8
+1157	Sarouq Syrus Rug	2019	251	6	\N	faux	375	\N	7
+1158	Sarouq Yazmin Rug	2016	246	10	\N	leather	330	\N	8
+1159	Sarouq Zarina Rug	2021	239	7.5	\N	faux	375	\N	4
+1160	Sarqaleh Rug	2020	384	9	\N	faux	375	\N	8
+1161	Sarshilaneh Rug	2021	384	9	\N	faux	375	\N	4
+1162	Sarsur Rug	2020	239	8	\N	faux	440	\N	10
+1163	Sartal Dingo Rug	2020	254	4.6	\N	leather	330	\N	8
+1164	Sartang Deh Kuhneh Hamidabad Rug	2020	367	5.6	\N	faux	473	\N	7
+1165	Sartang Ravaq Rug	2022	239	6.2	\N	faux	440	\N	7
+1166	Sartang Tamank Rug	2020	239	6.5	\N	faux	473	\N	8
+1167	Sartang Tutnadeh Rug	2019	251	7.2	35	faux	375	\N	8
+1168	Sartaveh Kabiet Alah Rug	2023	246	11.5	\N	faux	440	\N	\N
+1169	Savari Rug	2020	241	6	\N	faux	500	\N	8
+1170	Saveh	2020	383	10	30	faux	440	\N	8
+1171	Saveh Azura Rug	2023	344	5.3	\N	faux	440	\N	8
+1172	Saveh Ester Rug	2023	295	10.5	\N	faux	375	\N	8
+1173	Saveh Jaslyn Rug	2021	241	6.8	\N	faux	473	\N	7
+1174	Saveh Kamran Rug	2022	262	6.3	\N	faux	440	\N	7
+1175	Saveh Sitara Rug	2023	311	11	\N	faux	375	\N	7
+1176	Saveh Yasmine Rug	2022	246	12.3	\N	faux	330	\N	8
+1177	Sayyed Mohammad Baqer Rug	2020	241	6.6	\N	faux	473	\N	8
+1178	Seh Gedar Rug	2020	241	7.2	71	faux	440	\N	8
+1179	Seh Telon Porshire Rug	2020	235	5.2	\N	leather	330	\N	6
+1180	Seyyed Aghaee Rug	2010	385	32	\N	leather	375	\N	10
+1181	Seyyed Farm	2020	259	5	\N	leather	550	\N	7
+1182	Seyyed Javad Rug	2019	241	5.8	\N	faux	440	\N	7
+1183	Seyyed Shokre Rug	2020	241	6.2	\N	faux	375	soft touch	8
+1184	Seyyedabad Rug	2022	386	7.2	\N	faux	440	soft touch	6
+1185	Shadegan Rug	2020	257	8.8	\N	faux	440	\N	8
+1186	Shah Bahram Rug	2023	387	7.5	55	faux	500	\N	7
+1187	Shah Zeynali Rug	2020	388	7	\N	faux	500	\N	5
+1188	Shahabeddin Rug	2020	256	8.1	\N	faux	473	\N	7
+1189	Shahid Delrouz Bijgan Rug	2020	246	11.7	68	leather	355	\N	8
+1190	Shahini Rug	2020	284	8.5	100	faux	440	\N	7
+1191	Shahrak Golkhanei Mah Laleh Saro Kani	2020	270	10	\N	faux	440	\N	8
+1192	Shahrak Lavian Migrant Jang (Rug)	2019	261	4.6	\N	faux	440	\N	6
+1193	Shahrak Shahid Rezvani Lak Ban	2018	256	9	\N	faux	440	\N	8
+1194	Shahrak-e San'ati Chahar Bishkeh Rug	2022	241	7	\N	faux	440	\N	7
+1195	Shahrak-e Sanati Industrial Town	2019	267	9	\N	faux	375	\N	7
+1196	Shahrek Khizan Rug	2021	257	8	\N	faux	355	\N	8
+1197	Shakar Bolagh Rug	2019	334	10	\N	leather	330	\N	8
+1198	Shali Rug	2020	236	12.2	\N	leather	650	\N	8
+1199	Shalim Jaran	2021	311	12	\N	faux	375	\N	7
+1200	Shams Arab Abdollahi Rug	2023	256	8.2	\N	faux	500	\N	\N
+1201	Shamsabad	2022	258	6.5	\N	faux	440	\N	8
+1202	Shamsir Rug	2019	241	6.6	\N	faux	440	\N	7
+1203	Sharif Farm	2019	241	6	\N	leather	330	\N	6
+1204	Shatargenbadi Rug	2020	241	6.2	\N	faux	440	\N	8
+1205	Sheikh Habil Rug	2023	311	10.3	\N	faux	440	\N	9
+1206	Sheikh Mohammadlu Rug	2021	268	10.7	\N	faux	440	\N	8
+1207	Sherkat Kesht va San'at Roghan Nabati Golbahar Rug	2023	268	11.5	\N	faux	440	\N	8
+1208	Sherkat Yaghot Kooh Karch (Ma'dan) Rug	2022	389	7.8	\N	faux	355	\N	7
+1209	Shiraz Dream Rug	2013	235	6	\N	faux	375	\N	8
+1210	Shirkat Simorgh Yazd Rug Company	2023	266	6.2	\N	faux	375	\N	7
+1211	Shirvaneh Rug	2020	235	5.5	\N	faux	330	\N	6
+1212	Shtar Khun Rug	2020	246	10	\N	faux	440	\N	8
+1213	Shush Bolagh Rug	2020	256	9.2	76	faux	473	\N	8
+1214	Siahkal	2023	252	9.6	\N	faux	440	\N	4
+1215	Siahkal Azura Rug	2019	390	7.8	\N	faux	375	\N	7
+1216	Siahkal Jaslyn Rug	2022	251	7.5	\N	faux	500	\N	8
+1217	Siahkal Jasman Rug	2020	239	6.8	\N	faux	473	\N	7
+1218	Siahkal Jazmin Rug	2023	266	7.2	\N	faux	440	\N	8
+1219	Siahkal Jazmyn Rug	2023	251	7.3	\N	faux	500	\N	6
+1220	Siahkal Reza Rug	2021	251	7.5	60	faux	435	\N	8
+1221	Siahkal Yasmina Rug	2019	334	9.7	\N	leather	355	\N	7
+1222	Silarstan Rug	2023	241	7.2	\N	faux	500	\N	8
+1223	Siluah	2020	284	8	\N	faux	440	\N	8
+1224	Sineh Namak Rug	2023	241	6.5	\N	faux	375	\N	7
+1225	Sioieh Rug	2019	291	6	\N	leather	330	\N	7
+1226	Siron Shabiliz Rug	2019	291	6.5	\N	faux	330	\N	7
+1227	Siyuh Khadeh Olya	2022	391	0	\N	faux	355	\N	4
+1228	Siyuh Khadeh Safli	2021	270	10	\N	faux	440	\N	8
+1229	Soltan Abad Rug	2022	252	5.5	\N	faux	375	\N	7
+1230	Sool Rug	2021	272	6.1	\N	faux	375	\N	7
+1231	South Shorkat	2021	252	9	\N	faux	500	\N	8
+1232	Tabaf Rug	2021	270	10	\N	faux	440	\N	8
+1233	Tabriz Royal Rug	2023	246	11.5	\N	faux	375	\N	8
+1234	Tabrizi Farm	2021	283	7	\N	faux	500	\N	8
+1235	Taghanreh Rug	2021	289	4.6	\N	leather	375	\N	1
+1236	Tak Bolagh Arshagh Rug	2018	241	7.2	65	leather	341	\N	8
+1237	Takdam Rug	2020	297	5.5	\N	faux	375	\N	7
+1238	Takht Zangi Rug	2019	236	13.2	\N	leather	330	\N	8
+1239	Takht-e Mozda Abad Rug	2019	235	3.5	20	faux	375	\N	4
+1240	Tal Chega Rug	2022	239	6.3	\N	faux	375	\N	7
+1241	Tal Moozi Rug	2020	392	6.2	\N	leather	300	\N	7
+1242	Tal Siyah Bidan Jir Rug	2018	302	9.2	\N	leather	330	\N	8
+1243	Talakha Alia Rug	2018	334	11.3	\N	leather	330	\N	8
+1244	Talakha Sofla Bidak Rug	2020	239	6.7	\N	faux	500	\N	7
+1245	Talakha Zar Rug	2022	241	6.8	\N	faux	440	\N	8
+1246	Tamank Olya Rug	2021	239	6.5	\N	faux	440	\N	8
+1247	Tamank Sofli Rug	2020	393	4.8	60	faux	440	\N	6
+1248	Tang Ab Dehk Rug	2023	266	6.5	\N	faux	440	geometric	\N
+1249	Tang Anar Alia Rug	2023	266	6.5	\N	faux	440	geometric	\N
+1250	Tang Anar Sofla Rug	2023	266	6.5	\N	faux	440	geometric	\N
+1251	Tang Anar Vosta Rug	2021	295	10	\N	faux	500	\N	7
+1252	Tang Arzan Shabiliz Rug	2019	394	5.6	\N	faux	440	\N	8
+1253	Tang Basht Chahar Bishkeh Rug	2022	241	7	\N	faux	473	\N	7
+1254	Tang Daraman Rug	2020	395	6.5	\N	faux	330	\N	7
+1255	Tang Hamgoon Rug	2021	239	7.1	\N	faux	473	\N	8
+1256	Tang Khal Rug	2001	289	4.8	\N	leather	330	\N	4
+1257	Tang Kushk Rug	2023	396	10	\N	faux	440	\N	8
+1258	Tang Kuzi Rug	2023	266	6.5	\N	faux	375	\N	\N
+1259	Tang Pootak Rug	2021	264	6.5	43	faux	355	\N	7
+1260	Tang Ravaq Rug	2020	284	8	\N	faux	440	Mahi	8
+1261	Tang Sib Shabiliz Rug	2022	257	8.1	\N	faux	473	\N	7
+1262	Tang Tiseh Kooh Sark Rug	2020	243	6.5	\N	faux	440	\N	7
+1263	Tang-e Guleh Anjir Rug	2019	397	4	\N	faux	375	\N	6
+1264	Tang-e Gur Rug	2022	241	6.8	\N	faux	500	Multiple Boteh Design	8
+1265	Tang-e Madoul Rug	2020	241	7	60	faux	355	\N	7
+1266	Tangi Var Rug	2021	237	0.5	16	faux	375	Gol Design 	4
+1267	Taqiabad Attar Rug	2020	398	5.2	40	faux	440	\N	7
+1268	Taqiabad Rug	2021	258	8	\N	faux	375	\N	7
+1269	Tarh Mahi Jashidi Rug	2020	399	8	\N	faux	440	\N	8
+1270	Tasbasat Abrasani Kashan Rug	2023	256	8.8	\N	faux	440	\N	9
+1271	Tasbasat Baghcheh Bashi Rug	2021	289	4.9	\N	leather	375	\N	1
+1272	Tasbasat Chah Ziarat Rug	2019	238	10	\N	leather	355	\N	10
+1273	Tasbasat Chahar Yek Rug	2023	256	8	\N	faux	500	Gol Design 	8
+1274	Tasbasat Chaharsoo Rug	2021	400	6.5	20	faux	355	\N	8
+1275	Tasbasat Daste Saraj Rug	2020	236	10.1	80	faux	375	\N	7
+1276	Tasbasat Dastgerd Rug	2019	401	12.5	\N	leather	500	\N	7
+1277	Tasbasat Dowlatabad Rug	2023	267	8.2	\N	faux	500	\N	8
+1278	Tasbasat Kahgol Rug	2019	241	6.5	55	leather	330	\N	6
+1279	Tasbasat Kalashi Mirabad Rug	2021	241	6.8	\N	faux	355	\N	7
+1280	Tasbasat Khak Bid Abad Rug	2023	266	7.8	\N	faux	440	\N	8
+1281	Tasbasat Kharrar Rug	2021	251	7	\N	faux	355	\N	8
+1282	Tasbasat Khoshkeh Roghan Nabati Rug	2020	259	6.5	\N	faux	375	\N	7
+1283	Tasbasat Mahabad Rug	2021	256	9	80	faux	375	\N	7
+1284	Tasbasat Sabz Karan Rug	2021	261	6	\N	faux	375	\N	8
+1285	Tasbasat Sabzeh Meydan Rug	2023	256	7.7	\N	faux	440	\N	8
+1286	Tasbasat Sangelaj Rug	2020	261	5	\N	faux	440	\N	7
+1287	Tasbasat Seh Dokan Rug	2019	241	6.5	\N	faux	473	\N	7
+1288	Tasbasat Siah Dasht Rug	2020	266	7	\N	faux	440	\N	7
+1289	Tasbasat Zamin Astaneh Rug	2023	241	7	\N	faux	440	\N	8
+1290	Tasbasat Ziarat Rug	2021	402	6.7	\N	faux	440	\N	8
+1291	Tasbasat Zilayi Rug	2021	266	7	\N	faux	375	\N	8
+1292	Tasfieh Khaneh Ab Khirabad Rug	2021	266	6.2	\N	faux	440	\N	8
+1293	Tavan	2020	266	6.2	\N	faux	355	\N	7
+1294	Tazeh Kandi Rug	2023	266	7	\N	faux	440	\N	\N
+1295	Tazehabad Amin Rug	2023	367	7.5	\N	faux	440	\N	7
+1296	Tazehabad Asef Rug	2021	273	7.5	\N	faux	375	\N	7
+1297	Tazehabad Doleh Rash Rug	2020	403	10.5	\N	faux	375	\N	8
+1298	Tazehabad Gola Neh Rug	2023	258	6.2	\N	faux	440	\N	8
+1299	Tazehabad Heyran Rug	2014	404	9.8	\N	leather	750	\N	10
+1300	Tazehabad Qazi Ali Rug	2018	252	8.5	\N	leather	750	\N	8
+1301	Tazehabad Sardalan Rug	2021	238	9	35	leather	355	\N	8
+1302	Tazehabad Vazir Rug	2020	262	2.9	\N	faux	330	\N	5
+1303	Teilkouh Rug	2023	261	6.5	\N	faux	375	\N	\N
+1304	Tel Gawey Rug	2022	256	8.2	\N	faux	440	west coast style	8
+1305	Tel Rezaqoli Mombi Rug	2022	367	5.5	\N	faux	355	animal motif	8
+1306	Ti 25 Pashid Hossein Shahram Far (Rug)	2017	246	10	\N	leather	330	\N	8
+1307	Titegh Rug	2022	241	7.3	\N	faux	500	floral design	8
+1308	Totook Rug	2018	241	6	\N	faux	375	\N	7
+1309	Toupz Abad	2022	256	8.1	\N	faux	440	\N	8
+1310	Tozgaleh	2020	246	13	\N	faux	440	\N	8
+1311	Tubordi Rug	2019	251	6.9	\N	faux	375	\N	7
+1312	Tumar Dare Si Sofla Rug	2021	241	8	\N	faux	350	\N	7
+1313	Tumar Dare Si Ulya Rug	2023	241	7.8	\N	faux	440	Natural colour	8
+1314	Tut Nadeh Rug	2022	256	8.1	\N	faux	440	Natural colour	7
+1315	Vahidabad Rug	2021	311	9.1	\N	faux	375	\N	7
+1316	Valef Gas Pakak Dogonbadan Rug	2023	243	7.5	\N	faux	500	\N	8
+1317	Valef Gaz Maleh Oozani Kata Rug	2023	239	6.3	\N	faux	440	\N	8
+1318	Valiabad (Moztar) Rug	2023	266	6.5	\N	faux	440	\N	\N
+1319	Vandarani Olya Rug	2019	235	5.1	24	faux	375	\N	4
+1320	Vandarani Sofla Rug	2016	284	9.5	74	leather	750	\N	8
+1321	Vardak-e Tari Teri Tol Ghoochi Rug	2021	289	4.4	\N	leather	375	\N	1
+1322	Vardaye Ad Khaneh Dara Abgandi Rug	2020	241	6.1	\N	faux	440	\N	7
+1323	Vardehaye Ashayeri Kooh Noor Rug	2020	257	8	\N	faux	440	\N	10
+1324	Vazir Farm	2021	405	8.9	\N	leather	330	Natural colour	8
+1325	Vazir Rug	2020	257	8.5	\N	faux	473	\N	9
+1326	Vazman Rug	2021	239	8.9	\N	faux	375	cyan colour	7
+1327	Yagush	2023	270	13	\N	faux	375	\N	9
+1328	Yakhthe Khan Rug	2022	241	7.6	\N	faux	440	\N	9
+1329	Yazd Oasis Rug	2020	285	5.5	\N	faux	350	\N	8
+1330	Yeghvasee Rug	2022	256	8	\N	faux	440	\N	7
+1331	Yengi Aragh Rug	2017	284	8	70	faux	473	\N	10
+1332	Yingi Kend Rug	2019	251	6.4	\N	faux	473	Natural colour	6
+\.
+
+
+--
+-- Data for Name: styles; Type: TABLE DATA; Schema: public
+--
+
+COPY public.styles (id, name, min_knot_length, max_knot_length) FROM stdin;
+236	Gul Farangi_TypeC	9	14
+237	Qom_TypeD	0.1	0.5
+238	Abadeh_TypeA	8	13
+239	Savonnerie_TypeC	3	9
+241	Koliai_TypeD	3	9
+242	Mahal_TypeA	9.4	10.5
+244	Shahsavan_TypeD	7.9	9
+245	Heriz_TypeC	6.8	7.9
+247	Nahavand_TypeB	10.4	11.5
+249	Tree of Life_TypeA	6	12
+250	Afshar_TypeB	5	7
+251	Shah Abbasi_TypeD	4	9
+252	Nomad_TypeC	4	10
+254	Nahavand_TypeD	4	5
+255	Gul Hannai_TypeB	6.2	7.3
+256	Touserkan_TypeC	7	11
+257	Hamedan_TypeC	6	10
+258	Koliai_TypeA	5	8
+260	Doroksh_TypeC	6.8	7.9
+261	Doroksh_TypeA	3	7
+262	Luri_TypeA	2	9
+264	Birjand_TypeA	5	13
+265	Qom_TypeA	5	9
+266	Arak_TypeB	5	8
+267	Zanjan_TypeC	7	9
+269	Luri_TypeC	3	6
+270	Shah Abbasi_TypeC	9	13
+271	Gul Farangi_TypeB	4	5
+272	Malayer_TypeB	5	13
+274	Toranj_TypeB	4	5
+275	Bakhtiari_TypeC	5.4	6.5
+276	Malayer_TypeA	5.6	6.7
+277	Serapi_TypeC	9.4	10.5
+279	Abadeh_TypeB	6.9	8
+280	Nain_TypeD	6	13
+281	Heriz_TypeB	4.8	5.9
+282	Boteh_TypeA	4	5
+246	Shiraz_TypeD	8	19
+285	Hamadan_TypeA	4.5	5.9
+286	Birjand_TypeB	7.9	9
+287	Qom_TypeB	5	8
+289	Gul Hannai_TypeA	3	5
+290	Mahal_TypeC	6.1	7.2
+291	Hamedan_TypeD	4	7
+292	Kerman_TypeC	6.3	7.4
+294	Baluchi_TypeC	6	10
+295	Touserkan_TypeD	9	11
+296	Hamadan_TypeC	4	7
+297	Tafresh_TypeB	3	6
+299	Ardabil_TypeC	5.2	6.3
+300	Shiraz_TypeB	4	9
+301	Gol Henai_TypeA	4	7
+302	Heriz_TypeD	8	9
+304	Ardabil_TypeA	7.9	9
+305	Sultanabad_TypeA	5.2	6.3
+306	Shah Abbasi_TypeB	7	9
+307	Sarouk_TypeA	9.5	10.6
+309	Sultanabad_TypeD	5.4	6.5
+310	Doroksh_TypeB	6.2	7.3
+311	Qom_TypeC	8	12
+312	Sarough_TypeA	6.4	7.5
+314	Kilim	3	7
+315	Sarouk_TypeC	6.4	7.5
+316	Bakhtiari_TypeD	4.8	5.9
+317	Hamadan_TypeD	10.5	11.6
+319	Shiraz_TypeC	17.4	18.5
+320	Shahsavan_TypeC	7.7	8.8
+321	Tafresh_TypeA	3.9	5
+322	Savonnerie_TypeD	4.3	5.4
+323	Farahan	4	6
+325	Abadeh_TypeC	0.1	0.5
+326	Qashqai_TypeB	9.9	11
+327	Serapi_TypeA	7.4	8.5
+329	Kerman_TypeB	3.9	5
+330	Isfahan_TypeD	6	8
+331	Gul Hannai_TypeC	6.9	8
+332	Ghashghai_TypeB	3	6
+333	Afshar_TypeA	4.6	5.7
+334	Sarough_TypeD	9	11
+336	Heriz_TypeA	0.1	0.5
+337	Sirjan_TypeA	11.4	12.5
+338	Gul Farangi_TypeA	6	8
+340	Isfahan_TypeB	5.9	7
+341	Mashhad_TypeA	4.5	5.6
+342	Mashhad_TypeC	3.9	5
+343	Bijar_TypeB	3.4	4.5
+345	Nomad_TypeA	8	9
+346	Ardabil_TypeB	17.8	18.9
+347	Baluchi_TypeB	5.5	6.6
+348	Sirjan_TypeB	8.4	9.5
+350	Sultanabad-Mahal_TypeB	4	6
+351	Yazd_TypeD	5.9	7
+352	Mashhad_TypeD	4.2	5.3
+353	Toranj_TypeA	6	7
+354	Afshar_TypeD	6.6	7.7
+356	Kerman_TypeD	6.1	7.2
+357	Gabbeh_TypeB	7.9	9
+358	Nahavand_TypeC	7.3	8.4
+359	Moud_TypeA	6.7	7.8
+361	Ghashghai_TypeD	5.6	6.7
+362	Nahavand_TypeA	8.9	10
+363	Kashmar_TypeD	11.6	12.7
+364	Sultanabad_TypeC	10.9	12
+365	Kashmar_TypeA	4.4	5.5
+366	Tabriz_TypeA	4	6
+368	Nain_TypeC	5.2	6.3
+369	Savonnerie_TypeA	4.9	6
+370	Nomad_TypeB	7.6	8.7
+372	Sarough_TypeC	13.4	14.5
+373	Gol Henai_TypeB	3.4	4.5
+374	Tree of Life_TypeB	5.8	6.9
+376	Gabbeh_TypeC	5.4	6.5
+377	Hamedan_TypeA	5.4	6.5
+378	Savonnerie_TypeB	11.1	12.2
+379	Abadeh_TypeD	5.2	6.3
+381	Baluchi_TypeD	8.4	9.5
+382	Zanjan_TypeD	4.4	5.5
+383	Bakhtiari_TypeA	9.4	10.5
+384	Nain_TypeA	8.4	9.5
+386	Arak_TypeA	6.6	7.7
+387	Tafresh_TypeC	6.9	8
+388	Koliai_TypeB	6.4	7.5
+390	Yazd_TypeA	7.2	8.3
+391	Kashmar_TypeB	0.1	0.5
+392	Birjand_TypeC	5.6	6.7
+393	Shiraz_TypeA	4.2	5.3
+235	Koliai_TypeC	3	7
+240	Isfahan_TypeC	6	13
+243	Ghoum_TypeB	5	8
+248	Moud_TypeB	4.9	6
+253	Yazd_TypeB	4	7
+259	Yazd_TypeC	4	8
+263	Qashqai_TypeD	7.5	8.6
+268	Touserkan_TypeA	8	14
+273	Toranj_TypeC	7	10
+278	Hamadan_TypeB	8	10
+283	Gol Henai_TypeC	5	10
+288	Ghashghai_TypeA	7.5	8.6
+293	Zanjan_TypeB	0.1	0.5
+298	Senneh_TypeB	6.1	7.2
+303	Kerman_TypeA	7.4	8.5
+308	Sultanabad_TypeB	8.2	9.3
+313	Mahal_TypeB	6.2	7.3
+318	Qashqai_TypeA	6	12
+324	Serapi_TypeD	9.4	10.5
+328	Boteh_TypeD	7.9	9
+335	Ghoum_TypeD	4.5	5.6
+339	Tafresh_TypeD	4.6	5.7
+344	Ghoum_TypeA	4	6
+349	Mahal_TypeD	7.2	8.3
+355	Ardabil_TypeD	6.7	7.8
+360	Nain_TypeB	10.4	11.5
+367	Shahsavan_TypeB	3	8
+371	Sirjan_TypeC	4.7	5.8
+375	Sirjan_TypeD	5.2	6.3
+380	Tree of Life_TypeC	4.3	5.4
+385	Sultanabad-Mahal_TypeA	31.4	32.5
+389	Herati_TypeB	7.2	8.3
+394	Herati_TypeA	5	6.1
+395	Tabriz_TypeB	5.9	7
+396	Serapi_TypeB	9.4	10.5
+397	Mashhad_TypeB	3.4	4.5
+398	Josheghan_TypeA	4.6	5.7
+399	Birjand_TypeD	7.4	8.5
+400	Sarough_TypeB	5.9	7
+401	Gul Farangi_TypeD	11.9	13
+402	Bijar_TypeA	6.1	7.2
+403	Luri_TypeB	9.9	11
+404	Bakhtiari_TypeB	9.2	10.3
+405	Boteh_TypeB	8.3	9.4
+284	Ghashghai_TypeC	9	20
+\.
+
+
+--
+-- Name: contains contains_pkey; Type: CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.contains
+    ADD CONSTRAINT contains_pkey PRIMARY KEY (rug, material);
+
+
+--
+-- Name: crafted_by crafted_by_pkey; Type: CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.crafted_by
+    ADD CONSTRAINT crafted_by_pkey PRIMARY KEY (rug, factory);
+
+
+--
+-- Name: factories factories_name_key; Type: CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.factories
+    ADD CONSTRAINT factories_name_key UNIQUE (name);
+
+
+--
+-- Name: factories factories_pkey; Type: CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.factories
+    ADD CONSTRAINT factories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: locations locations_pkey; Type: CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.locations
+    ADD CONSTRAINT locations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: materials materials_pkey; Type: CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.materials
+    ADD CONSTRAINT materials_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: rugs rugs_pkey; Type: CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.rugs
+    ADD CONSTRAINT rugs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: styles styles_name_key; Type: CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.styles
+    ADD CONSTRAINT styles_name_key UNIQUE (name);
+
+
+--
+-- Name: styles styles_pkey; Type: CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.styles
+    ADD CONSTRAINT styles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: contains contains_material_fkey; Type: FK CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.contains
+    ADD CONSTRAINT contains_material_fkey FOREIGN KEY (material) REFERENCES public.materials(id);
+
+
+--
+-- Name: contains contains_rug_fkey; Type: FK CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.contains
+    ADD CONSTRAINT contains_rug_fkey FOREIGN KEY (rug) REFERENCES public.rugs(id);
+
+
+--
+-- Name: crafted_by crafted_by_factory_fkey; Type: FK CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.crafted_by
+    ADD CONSTRAINT crafted_by_factory_fkey FOREIGN KEY (factory) REFERENCES public.factories(id);
+
+
+--
+-- Name: crafted_by crafted_by_rug_fkey; Type: FK CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.crafted_by
+    ADD CONSTRAINT crafted_by_rug_fkey FOREIGN KEY (rug) REFERENCES public.rugs(id);
+
+
+--
+-- Name: factories factories_located_in_fkey; Type: FK CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.factories
+    ADD CONSTRAINT factories_located_in_fkey FOREIGN KEY (located_in) REFERENCES public.locations(id);
+
+
+--
+-- Name: rugs rugs_style_fkey; Type: FK CONSTRAINT; Schema: public
+--
+
+ALTER TABLE ONLY public.rugs
+    ADD CONSTRAINT rugs_style_fkey FOREIGN KEY (style) REFERENCES public.styles(id);
+
+
+--
+-- PostgreSQL database dump complete
+--
